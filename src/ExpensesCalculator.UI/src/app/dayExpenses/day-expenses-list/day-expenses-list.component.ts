@@ -705,13 +705,6 @@ export class DayExpensesListComponent implements OnInit, AfterViewInit, OnDestro
           title: this.translate.instant('TOUR.DATE_FILTER_TITLE'),
           placement: 'bottom',
           enableBackdrop: true
-        },
-        {
-          anchorId: 'search-filter',
-          content: this.translate.instant('TOUR.SEARCH_FILTER_CONTENT'),
-          title: this.translate.instant('TOUR.SEARCH_FILTER_TITLE'),
-          placement: 'top',
-          enableBackdrop: true
         }
       );
 
@@ -745,6 +738,13 @@ export class DayExpensesListComponent implements OnInit, AfterViewInit, OnDestro
         // Steps for large screens (table view)
         tourSteps.push(
           {
+            anchorId: 'search-filter',
+            content: this.translate.instant('TOUR.SEARCH_FILTER_CONTENT'),
+            title: this.translate.instant('TOUR.SEARCH_FILTER_TITLE'),
+            placement: 'top',
+            enableBackdrop: true
+          },
+          {
             // Highlights the table header only (tourAnchor on <thead>)
             anchorId: 'expenses-table',
             content: this.translate.instant('TOUR.EXPENSES_TABLE_CONTENT'),
@@ -772,7 +772,12 @@ export class DayExpensesListComponent implements OnInit, AfterViewInit, OnDestro
       }
     }
 
-    this.tourService.initialize(tourSteps);
+    // Initialize tour with global button title configuration
+    this.tourService.initialize(tourSteps, {
+      prevBtnTitle: this.translate.instant('TOUR.PREV_BTN'),
+      nextBtnTitle: this.translate.instant('TOUR.NEXT_BTN'),
+      endBtnTitle: this.translate.instant('TOUR.END_BTN')
+    });
   }
 
   startTour() {

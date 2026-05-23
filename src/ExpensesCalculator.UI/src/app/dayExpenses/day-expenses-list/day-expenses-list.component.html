@@ -60,8 +60,8 @@
                     </div>
                 </div>
 
-                <!-- RIGHT SIDE: Filter dropdown and search -->
-                <div class="d-flex flex-column" tourAnchor="search-filter">
+                <!-- RIGHT SIDE: Filter dropdown and search (hidden on small screens) -->
+                <div class="d-none d-sm-flex flex-column" tourAnchor="search-filter">
                     <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
                         <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
                     </small>
@@ -77,8 +77,33 @@
             </div>
         </div>
     </div>
-    <div *ngIf="showNoSearchResults()" class="text-white text-center py-4">
-        <h3>{{ 'EXPENSES.NO_SEARCH_RESULTS' | translate }}</h3>
+
+    <!-- Offcanvas for filters on small screens -->
+    <div class="offcanvas offcanvas-end dark-blue-1 text-white" tabindex="-1" id="filterOffcanvas" aria-labelledby="filterOffcanvasLabel">
+        <div class="offcanvas-header border-bottom border-secondary">
+            <h5 class="offcanvas-title" id="filterOffcanvasLabel">
+                <i class="bi bi-funnel me-2"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="d-flex flex-column">
+                <small class="text-white-50 mb-2" style="font-size: 0.7rem;">
+                    <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
+                </small>
+                <app-filter-bar
+                    [filterOptions]="filterOptions"
+                    [selectedCriteria]="filterCriteria"
+                    [filterText]="filterText"
+                    [placeholderKey]="'EXPENSES.SEARCH'"
+                    (criteriaChange)="changeFilterCriteria($event)"
+                    (filterTextChange)="onFilterChange($event)">
+                </app-filter-bar>
+                <button class="btn btn-primary w-100 mt-3" type="button" data-bs-dismiss="offcanvas">
+                    {{ 'ITEMS.FILTER.APPLY' | translate }}
+                </button>
+            </div>
+        </div>
     </div>
     <!-- Table view for larger screens -->
     <div *ngIf="expensesList.length > 0" class="table-responsive fix-table-height d-none d-sm-block">
@@ -172,12 +197,19 @@
         </table>
     </div>
 
-    <!-- Sort controls for small screens -->
-    <div *ngIf="expensesList.length > 0" class="d-block d-sm-none mb-2 px-2" tourAnchor="sort-controls">
-        <div class="d-flex flex-column">
-            <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
-                <i class="bi bi-sort-down me-1"></i>{{ 'ITEMS.SORT.CAPTION' | translate }}
-            </small>
+    <!-- Filter and Sort controls for small screens -->
+    <div *ngIf="showFilterControls()" class="d-block d-sm-none mb-2 px-2" tourAnchor="sort-controls">
+        <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
+            <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }} & <i class="bi bi-sort-down me-1"></i>{{ 'ITEMS.SORT.CAPTION' | translate }}
+        </small>
+        <div class="d-flex w-100 filter-sort-group">
+            <button class="btn btn-outline-primary text-white filter-btn"
+                    type="button"
+                    data-bs-toggle="offcanvas"
+                    data-bs-target="#filterOffcanvas"
+                    aria-controls="filterOffcanvas">
+                <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
+            </button>
             <app-sort-bar
                 [sortOptions]="sortOptions"
                 [selectedColumn]="sortColumn"
@@ -185,6 +217,11 @@
                 (sortChange)="onSortChange($event)">
             </app-sort-bar>
         </div>
+    </div>
+
+    <!-- No Search Results -->
+    <div *ngIf="showNoSearchResults()" class="text-white text-center py-4">
+        <h3>{{ 'EXPENSES.NO_SEARCH_RESULTS' | translate }}</h3>
     </div>
 
     <!-- Data label for small screens -->

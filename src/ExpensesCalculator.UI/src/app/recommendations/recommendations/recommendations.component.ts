@@ -70,8 +70,6 @@ export class RecommendationsComponent implements OnInit, AfterViewInit, OnDestro
   private actualFilterCriteria = 'Name';
   sortColumn: 'name' | 'price' | 'amount' | 'totalPrice' | 'userCount' | 'rating' = 'rating';
   sortOrder: 'asc' | 'desc' = 'desc';
-  tempSortColumn: 'name' | 'price' | 'amount' | 'totalPrice' | 'userCount' | 'rating' = 'rating';
-  tempSortOrder: 'asc' | 'desc' = 'desc';
 
   // Filter and sort options for shared components
   filterOptions: FilterOption[] = [
@@ -102,13 +100,6 @@ export class RecommendationsComponent implements OnInit, AfterViewInit, OnDestro
   private langChangeSub!: Subscription;
   private filterTextSubject = new Subject<string>();
   private filterTextSubscription!: Subscription;
-
-  get sortDisplayText(): string {
-    const columnKey = `ITEMS.SORT.${this.sortColumn.toUpperCase().replace('PRICE', 'PRICE').replace('TOTALPRICE', 'TOTAL_PRICE').replace('USERCOUNT', 'USER_COUNT')}`;
-    const columnText = this.translate.instant(columnKey);
-    const orderIcon = this.sortOrder === 'asc' ? '↑' : '↓';
-    return `${columnText} ${orderIcon}`;
-  }
 
   get filterCriteriaKey(): string {
     const keyMap: Record<string, string> = {
@@ -153,6 +144,9 @@ export class RecommendationsComponent implements OnInit, AfterViewInit, OnDestro
       this.loadItems();
     });
 
+    // Set items per page based on screen size
+    this.setItemsPerPageByScreenSize();
+
     this.loadItems();
     this.loadAllTags();
   }
@@ -187,6 +181,15 @@ export class RecommendationsComponent implements OnInit, AfterViewInit, OnDestro
     }
     if (this.filterTextSubscription) {
       this.filterTextSubscription.unsubscribe();
+    }
+  }
+
+  setItemsPerPageByScreenSize(): void {
+    // Bootstrap's md breakpoint is 768px
+    if (window.innerWidth < 768) {
+      this.itemsPerPage = 3;
+    } else {
+      this.itemsPerPage = 12;
     }
   }
 
@@ -309,22 +312,7 @@ export class RecommendationsComponent implements OnInit, AfterViewInit, OnDestro
     this.loadItems();
   }
 
-  openSortModal(): void {
-    this.tempSortColumn = this.sortColumn;
-    this.tempSortOrder = this.sortOrder;
-  }
-
-  applySorting2(): void {
-    this.sortColumn = this.tempSortColumn;
-    this.sortOrder = this.tempSortOrder;
-    this.currentPage = 1;
-    this.loadItems();
-    this.closeSortDropdown();
-  }
-
   resetSorting(): void {
-    this.tempSortColumn = 'name';
-    this.tempSortOrder = 'asc';
     this.sortColumn = 'name';
     this.sortOrder = 'asc';
     this.currentPage = 1;
@@ -620,47 +608,62 @@ export class RecommendationsComponent implements OnInit, AfterViewInit, OnDestro
   // Tour
   initializeTour(): void {
     const hasItems = !!document.querySelector('[touranchor="items-grid"]');
+    const isSmallScreen = window.innerWidth < 576;
 
     const tourSteps: any[] = [];
 
-    // Always show basic steps
-    tourSteps.push(
-      {
-        anchorId: 'tag-filter',
-        content: this.translate.instant('TOUR_RECOMMENDATIONS.TAG_FILTER_CONTENT'),
-        title: this.translate.instant('TOUR_RECOMMENDATIONS.TAG_FILTER_TITLE'),
+    // Add item button - always visible
+    tourSteps.push({
+      anchorId: 'add-item-btn',
+      content: this.translate.instant('TOUR_RECOMMENDATIONS.ADD_ITEM_CONTENT'),
+      title: this.translate.instant('TOUR_RECOMMENDATIONS.ADD_ITEM_TITLE'),
+      placement: 'bottom',
+      enableBackdrop: true
+    });
+
+    // Different steps for small vs large screens
+    if (isSmallScreen) {
+      // Steps for small screens (filter/sort group)
+      tourSteps.push({
+        anchorId: 'filter-sort-controls',
+        content: this.translate.instant('TOUR_RECOMMENDATIONS.FILTER_SORT_CONTROLS_CONTENT'),
+        title: this.translate.instant('TOUR_RECOMMENDATIONS.FILTER_SORT_CONTROLS_TITLE'),
         placement: 'bottom',
         enableBackdrop: true
-      },
-      {
-        anchorId: 'search-filter',
-        content: this.translate.instant('TOUR_RECOMMENDATIONS.SEARCH_FILTER_CONTENT'),
-        title: this.translate.instant('TOUR_RECOMMENDATIONS.SEARCH_FILTER_TITLE'),
-        placement: 'bottom',
-        enableBackdrop: true
-      },
-      {
-        anchorId: 'sort-bar',
-        content: this.translate.instant('TOUR_RECOMMENDATIONS.SORT_BAR_CONTENT'),
-        title: this.translate.instant('TOUR_RECOMMENDATIONS.SORT_BAR_TITLE'),
-        placement: 'left',
-        enableBackdrop: true
-      },
-      {
-        anchorId: 'add-item-btn',
-        content: this.translate.instant('TOUR_RECOMMENDATIONS.ADD_ITEM_CONTENT'),
-        title: this.translate.instant('TOUR_RECOMMENDATIONS.ADD_ITEM_TITLE'),
-        placement: 'bottom',
-        enableBackdrop: true
-      },
-      {
-        anchorId: 'only-my-items',
-        content: this.translate.instant('TOUR_RECOMMENDATIONS.ONLY_MY_ITEMS_CONTENT'),
-        title: this.translate.instant('TOUR_RECOMMENDATIONS.ONLY_MY_ITEMS_TITLE'),
-        placement: 'left',
-        enableBackdrop: true
-      }
-    );
+      });
+    } else {
+      // Steps for large screens (individual controls)
+      tourSteps.push(
+        {
+          anchorId: 'tag-filter',
+          content: this.translate.instant('TOUR_RECOMMENDATIONS.TAG_FILTER_CONTENT'),
+          title: this.translate.instant('TOUR_RECOMMENDATIONS.TAG_FILTER_TITLE'),
+          placement: 'bottom',
+          enableBackdrop: true
+        },
+        {
+          anchorId: 'search-filter',
+          content: this.translate.instant('TOUR_RECOMMENDATIONS.SEARCH_FILTER_CONTENT'),
+          title: this.translate.instant('TOUR_RECOMMENDATIONS.SEARCH_FILTER_TITLE'),
+          placement: 'bottom',
+          enableBackdrop: true
+        },
+        {
+          anchorId: 'sort-bar',
+          content: this.translate.instant('TOUR_RECOMMENDATIONS.SORT_BAR_CONTENT'),
+          title: this.translate.instant('TOUR_RECOMMENDATIONS.SORT_BAR_TITLE'),
+          placement: 'left',
+          enableBackdrop: true
+        },
+        {
+          anchorId: 'only-my-items',
+          content: this.translate.instant('TOUR_RECOMMENDATIONS.ONLY_MY_ITEMS_CONTENT'),
+          title: this.translate.instant('TOUR_RECOMMENDATIONS.ONLY_MY_ITEMS_TITLE'),
+          placement: 'left',
+          enableBackdrop: true
+        }
+      );
+    }
 
     // Add items grid step only if items exist
     if (hasItems) {
@@ -668,12 +671,17 @@ export class RecommendationsComponent implements OnInit, AfterViewInit, OnDestro
         anchorId: 'items-grid',
         content: this.translate.instant('TOUR_RECOMMENDATIONS.ITEMS_GRID_CONTENT'),
         title: this.translate.instant('TOUR_RECOMMENDATIONS.ITEMS_GRID_TITLE'),
-        placement: 'right',
+        placement: isSmallScreen ? 'bottom' : 'right',
         enableBackdrop: true
       });
     }
 
-    this.tourService.initialize(tourSteps);
+    // Initialize tour with global button title configuration
+    this.tourService.initialize(tourSteps, {
+      prevBtnTitle: this.translate.instant('TOUR.PREV_BTN'),
+      nextBtnTitle: this.translate.instant('TOUR.NEXT_BTN'),
+      endBtnTitle: this.translate.instant('TOUR.END_BTN')
+    });
   }
 
   startTour(): void {

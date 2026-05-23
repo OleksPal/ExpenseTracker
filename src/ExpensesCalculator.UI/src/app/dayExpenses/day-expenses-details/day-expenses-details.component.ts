@@ -479,7 +479,12 @@ export class DayExpensesDetailsComponent implements OnInit, AfterViewInit, OnDes
       );
     }
 
-    this.tourService.initialize(tourSteps);
+    // Initialize tour with global button title configuration
+    this.tourService.initialize(tourSteps, {
+      prevBtnTitle: this.translate.instant('TOUR.PREV_BTN'),
+      nextBtnTitle: this.translate.instant('TOUR.NEXT_BTN'),
+      endBtnTitle: this.translate.instant('TOUR.END_BTN')
+    });
   }
 
   startTour() {

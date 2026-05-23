@@ -257,7 +257,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   /* Global button sizing */
   .btn {
     font-size: 0.85rem !important;
-    padding: 0.3rem 0.6rem !important;
+    padding: 0.2rem 0.5rem !important;
   }
 
   .btn-sm {

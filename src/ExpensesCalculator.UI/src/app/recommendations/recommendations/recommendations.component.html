@@ -20,8 +20,8 @@
             <i class="bi bi-plus-circle me-1"></i>{{ 'ITEMS.ADD' | translate }}
         </button>
 
-        <!-- Tag Filter Section and Filter/Sort Controls -->
-        <div class="d-flex justify-content-start justify-content-lg-end pb-lg-2">
+        <!-- Filter/Sort Controls for Large Screens -->
+        <div class="d-none d-lg-flex justify-content-end pb-2">
             <div class="col-12">
                 <div class="d-flex flex-column flex-lg-row gap-2 align-items-stretch align-items-lg-end justify-content-lg-between px-0">
                     <!-- Tag Filter Group -->
@@ -52,15 +52,6 @@
                                 </ul>
                             </div>
                         </div>
-
-                        <!-- Tag Badges Display (shown below tag input on small screens only) -->
-                        <div *ngIf="filterTags.length > 0" class="d-block d-lg-none mt-2 scrollbar-dark" style="max-height: 60px; overflow-x: auto; overflow-y: hidden; white-space: nowrap;">
-                            <span *ngFor="let tag of filterTags" class="badge border border-primary text-white fw-normal me-2 mb-2"
-                                style="font-size: 0.9rem; display: inline-block; cursor: pointer;">
-                                #{{ tag }}
-                                <i class="bi bi-x ms-1" (click)="removeFilterTag(tag)"></i>
-                            </span>
-                        </div>
                     </div>
 
                     <!-- Search and Sort Group -->
@@ -89,7 +80,7 @@
                 </div>
 
                 <!-- Tag Badges Display (shown below all controls on large screens only) -->
-                <div *ngIf="filterTags.length > 0" class="d-none d-lg-block mt-2 scrollbar-dark" style="max-height: 60px; overflow-x: auto; overflow-y: hidden; white-space: nowrap;">
+                <div *ngIf="filterTags.length > 0" class="mt-2 scrollbar-dark" style="max-height: 60px; overflow-x: auto; overflow-y: hidden; white-space: nowrap;">
                     <span *ngFor="let tag of filterTags" class="badge border border-primary text-white fw-normal me-2 mb-2"
                         style="font-size: 0.9rem; display: inline-block; cursor: pointer;">
                         #{{ tag }}
@@ -99,8 +90,102 @@
             </div>
         </div>
 
-        <!-- Checkbox -->
-        <div class="d-flex justify-content-start justify-content-lg-end mt-2 mb-3">
+        <!-- Filter/Sort Controls for Small Screens -->
+        <div class="d-flex d-lg-none flex-column gap-2">
+            <small class="text-white-50 d-block d-sm-none" style="font-size: 0.7rem;">
+                <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }} & <i class="bi bi-sort-down me-1"></i>{{ 'ITEMS.SORT.CAPTION' | translate }}
+            </small>
+            <div class="d-flex w-100 filter-sort-group" tourAnchor="filter-sort-controls">
+                <button class="btn btn-outline-primary text-white filter-btn"
+                        type="button"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#filterOffcanvas"
+                        aria-controls="filterOffcanvas">
+                    <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
+                </button>
+                <app-sort-bar [sortOptions]="sortOptions" [selectedColumn]="sortColumn" [selectedOrder]="sortOrder"
+                    (sortChange)="onSortChange($event)">
+                </app-sort-bar>
+            </div>
+        </div>
+
+        <!-- Offcanvas for filters on small screens -->
+        <div class="offcanvas offcanvas-end dark-blue-1 text-white" tabindex="-1" id="filterOffcanvas" aria-labelledby="filterOffcanvasLabel">
+            <div class="offcanvas-header border-bottom border-secondary">
+                <h5 class="offcanvas-title" id="filterOffcanvasLabel">
+                    <i class="bi bi-funnel me-2"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <!-- Tag Filter -->
+                <div class="mb-4">
+                    <small class="text-white-50 mb-2 d-block" style="font-size: 0.7rem;">
+                        <i class="bi bi-tags me-1"></i>{{ 'ITEMS.FILTER.TAG_FILTER' | translate }}
+                    </small>
+                    <div class="position-relative">
+                        <div class="input-group">
+                            <span class="input-group-text bi bi-tags bg-transparent text-white border-primary"></span>
+                            <input [(ngModel)]="tagFilterInput" name="tagFilterInputOffcanvas"
+                                class="form-control bg-transparent text-white border-primary"
+                                [placeholder]="'ITEMS.TAG_FILTER_PLACEHOLDER' | translate" (input)="onTagInputChange()"
+                                (keydown.enter)="addFilterTag(); $event.preventDefault()" [disabled]="isLoading" />
+                            <button type="button" class="btn btn-outline-primary text-white" (click)="addFilterTag()"
+                                [disabled]="isLoading">
+                                <i class="bi bi-plus"></i>
+                            </button>
+                        </div>
+                        <!-- Tag Suggestions Dropdown -->
+                        <div *ngIf="showTagSuggestions" class="position-absolute w-100 mt-1" style="z-index: 1000;">
+                            <ul class="list-group">
+                                <li *ngFor="let tag of filteredTagSuggestions"
+                                    class="list-group-item list-group-item-action bg-dark text-white border-primary"
+                                    style="cursor: pointer;" (click)="selectTagSuggestion(tag)">
+                                    #{{ tag }}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- Tag Badges Display -->
+                    <div *ngIf="filterTags.length > 0" class="mt-2 scrollbar-dark" style="max-height: 60px; overflow-x: auto; overflow-y: hidden; white-space: nowrap;">
+                        <span *ngFor="let tag of filterTags" class="badge border border-primary text-white fw-normal me-2 mb-2"
+                            style="font-size: 0.9rem; display: inline-block; cursor: pointer;">
+                            #{{ tag }}
+                            <i class="bi bi-x ms-1" (click)="removeFilterTag(tag)"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Search Filter -->
+                <div class="mb-4">
+                    <small class="text-white-50 mb-2 d-block" style="font-size: 0.7rem;">
+                        <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
+                    </small>
+                    <app-filter-bar [filterOptions]="filterOptions" [selectedCriteria]="filterCriteria"
+                        [filterText]="filterText" [placeholderKey]="'ITEMS.SEARCH'"
+                        (criteriaChange)="changeFilterCriteria($event)" (filterTextChange)="onFilterChange($event)">
+                    </app-filter-bar>
+                </div>
+
+                <!-- Checkbox -->
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="useOnlyMyItemsOffcanvas"
+                            [(ngModel)]="onlyMyItems" (change)="onOnlyMyItemsChange()">
+                        <label class="form-check-label text-white" for="useOnlyMyItemsOffcanvas">
+                            {{ 'ITEMS.USE_ONLY_MY_ITEMS' | translate }}
+                        </label>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary w-100" type="button" data-bs-dismiss="offcanvas">
+                    {{ 'ITEMS.FILTER.APPLY' | translate }}
+                </button>
+            </div>
+        </div>
+
+        <!-- Checkbox for Large Screens -->
+        <div class="d-none d-lg-flex justify-content-start justify-content-lg-end mt-2 mb-3">
             <div class="form-check text-nowrap" tourAnchor="only-my-items">
                 <input type="checkbox" class="form-check-input" id="useOnlyMyItems"
                     [(ngModel)]="onlyMyItems" (change)="onOnlyMyItemsChange()">
@@ -110,7 +195,14 @@
             </div>
         </div>
 
-        <hr class="w-100 my-3" style="border-color: #080f27; opacity: 1;" />
+        <hr class="w-100 mt-3 mb-1 mb-sm-3" style="border-color: #080f27; opacity: 1;" />
+
+        <!-- Data caption for small screens -->
+        <div *ngIf="itemsList.length > 0" class="d-block d-sm-none mb-2">
+            <small class="text-white-50" style="font-size: 0.7rem;">
+                <i class="bi bi-table me-1"></i>{{ 'ITEMS.DATA' | translate }}
+            </small>
+        </div>
 
         <!-- No Items Message -->
         <div *ngIf="!isLoading && itemsList.length === 0" class="text-white text-center py-4">
@@ -125,10 +217,10 @@
 
         <!-- Items Cards with Pagination -->
         <div *ngIf="filteredItemsList.length > 0" class="d-flex align-items-center">
-            <!-- Previous Button -->
-            <button *ngIf="totalPages > 1" class="btn btn-outline-primary text-white me-1" (click)="goToPreviousPage()"
-                [disabled]="currentPage === 1"
-                style="width: 20px; height: 60px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0;">
+            <!-- Previous Button (Desktop only) -->
+            <button *ngIf="totalPages > 1" class="btn btn-outline-primary text-white me-1 d-none d-md-flex"
+                (click)="goToPreviousPage()" [disabled]="currentPage === 1"
+                style="width: 20px; height: 60px; align-items: center; justify-content: center; flex-shrink: 0; padding: 0;">
                 <i class="bi bi-chevron-left"></i>
             </button>
 
@@ -286,12 +378,26 @@
                 </div>
             </div>
 
-            <!-- Next Button -->
-            <button *ngIf="totalPages > 1" class="btn btn-outline-primary text-white ms-1" (click)="goToNextPage()"
-                [disabled]="currentPage === totalPages"
-                style="width: 20px; height: 60px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0;">
+            <!-- Next Button (Desktop only) -->
+            <button *ngIf="totalPages > 1" class="btn btn-outline-primary text-white ms-1 d-none d-md-flex"
+                (click)="goToNextPage()" [disabled]="currentPage === totalPages"
+                style="width: 20px; height: 60px; align-items: center; justify-content: center; flex-shrink: 0; padding: 0;">
                 <i class="bi bi-chevron-right"></i>
             </button>
+        </div>
+
+        <!-- Pagination buttons for small screens -->
+        <div *ngIf="filteredItemsList.length > 0 && totalPages > 1" class="d-flex d-md-none justify-content-center mt-3 mb-2">
+            <div class="btn-group" role="group">
+                <button class="btn btn-outline-primary text-white" (click)="goToPreviousPage()"
+                    [disabled]="currentPage === 1" style="min-width: 120px; font-size: 1.8rem;">
+                    <i class="bi bi-arrow-left" style="display: inline-block; transform: scaleX(2.5);"></i>
+                </button>
+                <button class="btn btn-outline-primary text-white" (click)="goToNextPage()"
+                    [disabled]="currentPage === totalPages" style="min-width: 120px; font-size: 1.8rem;">
+                    <i class="bi bi-arrow-right" style="display: inline-block; transform: scaleX(2.5);"></i>
+                </button>
+            </div>
         </div>
 
         <!-- Items count -->
@@ -337,7 +443,7 @@
                     style="resize: none;"></textarea>
             </div>
             <div class="row mb-2">
-                <div class="col-3">
+                <div class="col-6 col-md-3">
                     <div class="form-group">
                         <i class="bi bi-currency-dollar mx-1"></i>
                         <label class="control-label">{{ 'ITEMS.MODAL.PRICE' | translate }}<span
@@ -348,7 +454,7 @@
                         <div class="invalid-feedback" *ngIf="formErrors['price']">{{ formErrors['price'] }}</div>
                     </div>
                 </div>
-                <div class="col-3">
+                <div class="col-6 col-md-3">
                     <div class="form-group">
                         <i class="bi bi-grid-fill mx-1"></i>
                         <label class="control-label">{{ 'ITEMS.MODAL.AMOUNT' | translate }}<span
@@ -359,7 +465,7 @@
                         <div class="invalid-feedback" *ngIf="formErrors['amount']">{{ formErrors['amount'] }}</div>
                     </div>
                 </div>
-                <div class="col-6">
+                <div class="col-12 col-md-6">
                     <div class="form-group">
                         <i class="bi bi-star-fill mx-1"></i>
                         <label class="control-label mb-0">{{ 'ITEMS.MODAL.RATING' | translate }}<span
@@ -433,7 +539,7 @@
                     style="resize: none;"></textarea>
             </div>
             <div class="row mb-2">
-                <div class="col-3">
+                <div class="col-6 col-md-3">
                     <div class="form-group">
                         <i class="bi bi-currency-dollar mx-1"></i>
                         <label class="control-label">{{ 'ITEMS.MODAL.PRICE' | translate }}<span
@@ -444,7 +550,7 @@
                         <div class="invalid-feedback" *ngIf="formErrors['price']">{{ formErrors['price'] }}</div>
                     </div>
                 </div>
-                <div class="col-3">
+                <div class="col-6 col-md-3">
                     <div class="form-group">
                         <i class="bi bi-grid-fill mx-1"></i>
                         <label class="control-label">{{ 'ITEMS.MODAL.AMOUNT' | translate }}<span
@@ -455,7 +561,7 @@
                         <div class="invalid-feedback" *ngIf="formErrors['amount']">{{ formErrors['amount'] }}</div>
                     </div>
                 </div>
-                <div class="col-6">
+                <div class="col-12 col-md-6">
                     <div class="form-group">
                         <i class="bi bi-star-fill mx-1"></i>
                         <label class="control-label mb-0">{{ 'ITEMS.MODAL.RATING' | translate }}<span
@@ -520,21 +626,21 @@
                 <textarea [value]="comment" class="form-control" rows="3" disabled></textarea>
             </div>
             <div class="row mb-3">
-                <div class="col-3">
+                <div class="col-6 col-md-3">
                     <div class="form-group">
                         <i class="bi bi-currency-dollar mx-1"></i>
                         <label class="control-label">{{ 'ITEMS.MODAL.PRICE' | translate }}</label>
                         <input type="number" [value]="price" class="form-control" disabled />
                     </div>
                 </div>
-                <div class="col-3">
+                <div class="col-6 col-md-3">
                     <div class="form-group">
                         <i class="bi bi-grid-fill mx-1"></i>
                         <label class="control-label">{{ 'ITEMS.MODAL.AMOUNT' | translate }}</label>
                         <input type="number" [value]="amount" class="form-control" disabled />
                     </div>
                 </div>
-                <div class="col-6">
+                <div class="col-12 col-md-6">
                     <div class="form-group">
                         <i class="bi bi-star-fill mx-1"></i>
                         <label class="control-label mb-0">{{ 'ITEMS.MODAL.RATING' | translate }}</label>

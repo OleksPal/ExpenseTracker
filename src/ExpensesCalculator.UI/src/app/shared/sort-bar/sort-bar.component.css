@@ -46,11 +46,11 @@ hr {
 
 /* Component-specific responsive styles */
 @media (max-width: 576px) {
-  .dropdown-toggle {
+  .sort-dropdown .dropdown-toggle {
     width: 100% !important;
   }
 
-  .dropdown-menu {
+  .sort-dropdown .dropdown-menu {
     width: 100% !important;
   }
 

@@ -188,7 +188,7 @@ td {
 /* Highlighted item animation */
 .highlighted-item {
   border: 2px solid #ffc107 !important;
-  animation: highlightPulse 2s ease-in-out 3;
+  animation: highlightPulse 1s ease-in-out 1;
   box-shadow: 0 0 20px rgba(255, 193, 7, 0.6);
 }
 

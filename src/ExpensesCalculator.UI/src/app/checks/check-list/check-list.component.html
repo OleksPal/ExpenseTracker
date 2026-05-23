@@ -2,7 +2,7 @@
     <!-- Header Section -->
     <div class="container-fluid px-3 pt-2 text-white">
         <div class="d-flex align-items-center justify-content-between">
-            <h4 class="mt-4 mb-0">
+            <h4 class="mt-0 mb-3 mt-md-4 mb-md-0">
                 <i class="bi bi-receipt me-1"></i>{{ 'CHECKS.TITLE' | translate }}
             </h4>
             <div *ngIf="isLoading" class="spinner-border" role="status"></div>
@@ -19,46 +19,92 @@
         </button>
     </div>
 
-    <!-- Add Check button and Search Filter -->
-    <div *ngIf="checksList.length > 0" class="d-flex justify-content-end pb-lg-2 px-2 my-3">
-        <div class="col-12">
-            <div class="d-flex flex-column flex-lg-row gap-2 align-items-stretch align-items-lg-center justify-content-lg-between">
-                <div class="d-flex flex-column ms-md-2 align-self-start align-self-lg-center">
-                    <small class="text-white-50 mb-1 d-none d-sm-block" style="font-size: 0.7rem;">
-                        <i class="bi bi-table me-1"></i>{{ 'ITEMS.DATA' | translate }}
-                    </small>
-                    <button id="addCheckButton" class="btn btn-outline-primary text-white" (click)="openModal('add', '')" tourAnchor="add-check-btn">
-                        <i class="bi bi-plus-circle me-1"></i>{{ 'CHECKS.ADD' | translate }}
-                    </button>
-                </div>
-                <div class="d-flex flex-column">
-                    <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
-                        <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
-                    </small>
-                    <app-filter-bar
-                        [filterOptions]="filterOptions"
-                        [selectedCriteria]="filterCriteria"
-                        [filterText]="filterText"
-                        [placeholderKey]="'CHECKS.SEARCH'"
-                        (criteriaChange)="changeFilterCriteria($event)"
-                        (filterTextChange)="onFilterChange($event)">
-                    </app-filter-bar>
-                </div>
+    <!-- Offcanvas for filters on small screens -->
+    <div class="offcanvas offcanvas-end dark-blue-1 text-white" tabindex="-1" id="filterOffcanvasChecks" aria-labelledby="filterOffcanvasChecksLabel">
+        <div class="offcanvas-header border-bottom border-secondary">
+            <div class="d-flex flex-column">
+                <h5 class="offcanvas-title mb-0" id="filterOffcanvasChecksLabel">
+                    <i class="bi bi-funnel me-2"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }} {{ 'CHECKS.TITLE' | translate }}
+                </h5>
+                <small class="text-white-50 mt-1" *ngIf="dayExpensesDate">
+                    <i class="bi bi-calendar-event me-1"></i>{{ dayExpensesDate | date:'EEE, MMM dd, yyyy':'':currentLocale | titlecase }}
+                </small>
+                <small class="text-white-50 mt-2 mb-0" *ngIf="dayExpensesLocation">
+                    <i class="bi bi-geo-alt-fill me-1"></i>{{ dayExpensesLocation }}
+                </small>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="d-flex flex-column">
+                <small class="text-white-50 mb-2" style="font-size: 0.7rem;">
+                    <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
+                </small>
+                <app-filter-bar
+                    [filterOptions]="filterOptions"
+                    [selectedCriteria]="filterCriteria"
+                    [filterText]="filterText"
+                    [placeholderKey]="'CHECKS.SEARCH'"
+                    (criteriaChange)="changeFilterCriteria($event)"
+                    (filterTextChange)="onFilterChange($event)">
+                </app-filter-bar>
+                <button class="btn btn-primary w-100 mt-3" type="button" data-bs-dismiss="offcanvas">
+                    {{ 'ITEMS.FILTER.APPLY' | translate }}
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- No Search Results -->
-    <div *ngIf="checksList.length > 0 && filteredChecksList.length === 0" class="text-white text-center py-4">
-        <h3>{{ 'CHECKS.NO_SEARCH_RESULTS' | translate }}</h3>
+    <!-- Add Check button and Filter for larger screens -->
+    <div *ngIf="checksList.length > 0" class="d-none d-sm-block pb-2 px-2 my-3">
+        <div class="d-flex justify-content-between align-items-end">
+            <!-- LEFT SIDE: Add Check button -->
+            <div class="d-flex flex-column ms-md-2">
+                <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
+                    <i class="bi bi-table me-1"></i>{{ 'ITEMS.DATA' | translate }}
+                </small>
+                <button id="addCheckButton" class="btn btn-outline-primary text-white" (click)="openModal('add', '')" tourAnchor="add-check-btn">
+                    <i class="bi bi-plus-circle me-1"></i>{{ 'CHECKS.ADD' | translate }}
+                </button>
+            </div>
+
+            <!-- RIGHT SIDE: Filter controls (hidden on small screens) -->
+            <div class="d-flex flex-column">
+                <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
+                    <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
+                </small>
+                <app-filter-bar
+                    [filterOptions]="filterOptions"
+                    [selectedCriteria]="filterCriteria"
+                    [filterText]="filterText"
+                    [placeholderKey]="'CHECKS.SEARCH'"
+                    (criteriaChange)="changeFilterCriteria($event)"
+                    (filterTextChange)="onFilterChange($event)">
+                </app-filter-bar>
+            </div>
+        </div>
     </div>
 
-    <!-- Sort controls for small screens -->
-    <div *ngIf="filteredChecksList.length > 0" class="d-block d-sm-none mb-2 px-2">
-        <div class="d-flex flex-column">
-            <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
-                <i class="bi bi-sort-down me-1"></i>{{ 'ITEMS.SORT.CAPTION' | translate }}
-            </small>
+    <!-- Add Check button for small screens -->
+    <div *ngIf="checksList.length > 0" class="d-block d-sm-none mb-2 px-2">
+        <button class="btn btn-outline-primary text-white w-100" (click)="openModal('add', '')">
+            <i class="bi bi-plus-circle me-1"></i>{{ 'CHECKS.ADD' | translate }}
+        </button>
+    </div>
+
+    <!-- Filter and Sort controls for small screens -->
+    <div *ngIf="checksList.length > 0" class="d-block d-sm-none mb-2 px-2">
+        <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
+            <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }} & <i class="bi bi-sort-down me-1"></i>{{ 'ITEMS.SORT.CAPTION' | translate }}
+        </small>
+        <div class="d-flex w-100 filter-sort-group">
+            <button class="btn btn-outline-primary text-white filter-btn"
+                    type="button"
+                    data-bs-toggle="offcanvas"
+                    data-bs-target="#filterOffcanvasChecks"
+                    aria-controls="filterOffcanvasChecks">
+                <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
+            </button>
             <app-sort-bar
                 [sortOptions]="sortOptions"
                 [selectedColumn]="sortColumn"
@@ -66,6 +112,11 @@
                 (sortChange)="onSortChange($event)">
             </app-sort-bar>
         </div>
+    </div>
+
+    <!-- No Search Results -->
+    <div *ngIf="checksList.length > 0 && filteredChecksList.length === 0" class="text-white text-center py-4">
+        <h3>{{ 'CHECKS.NO_SEARCH_RESULTS' | translate }}</h3>
     </div>
 
     <!-- Checks Table for larger screens -->
@@ -144,6 +195,7 @@
                                         [isLoading]="isCheckItemsLoading(check.id)"
                                         [highlightedItemId]="highlightedItemId"
                                         [disableTooltipManagement]="true"
+                                        [isFirstCheck]="i === 0"
                                         (itemsChanged)="loadItemsForCheck($event)"
                                         (checkSumUpdated)="onCheckSumUpdated($event)">
                                     </app-item-list>
@@ -238,6 +290,7 @@
                                     [isLoading]="isCheckItemsLoading(check.id)"
                                     [highlightedItemId]="highlightedItemId"
                                     [disableTooltipManagement]="true"
+                                    [isFirstCheck]="false"
                                     (itemsChanged)="loadItemsForCheck($event)"
                                     (checkSumUpdated)="onCheckSumUpdated($event)">
                                 </app-item-list>
@@ -288,12 +341,25 @@
                 <i class="bi bi-wallet2 mx-1"></i>
                 <label class="control-label">{{ 'CHECKS.MODAL.PAYER_LABEL' | translate }}<span
                         class="text-danger">*</span></label>
-                <select [(ngModel)]="payer" name="payer" class="form-control" [class.is-invalid]="formErrors['payer']"
-                    [class.is-valid]="formValidated && !formErrors['payer'] && payer" required>
-                    <option value="">{{ 'CHECKS.MODAL.SELECT_PAYER' | translate }}</option>
-                    <option *ngFor="let participant of participants" [value]="participant">{{ participant }}</option>
-                </select>
-                <div class="invalid-feedback" *ngIf="formErrors['payer']">{{ formErrors['payer'] }}</div>
+                <div class="dropdown w-100">
+                    <button class="btn form-control text-start d-flex justify-content-between align-items-center"
+                            [class.is-invalid]="formErrors['payer']"
+                            [class.is-valid]="formValidated && !formErrors['payer'] && payer"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                        <span>{{ payer || ('CHECKS.MODAL.SELECT_PAYER' | translate) }}</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <ul class="dropdown-menu w-100">
+                        <li *ngFor="let participant of participants">
+                            <a class="dropdown-item" href="javascript:void(0)" (click)="payer = participant">
+                                {{ participant }}
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="invalid-feedback d-block" *ngIf="formErrors['payer']">{{ formErrors['payer'] }}</div>
             </div>
             <button type="button" class="btn btn-success" (click)="createCheck()">
                 <i class="bi bi-plus-circle me-1"></i>{{ 'CHECKS.MODAL.ADD_BUTTON' | translate }}
@@ -320,12 +386,25 @@
                 <i class="bi bi-wallet2 mx-1"></i>
                 <label class="control-label">{{ 'CHECKS.MODAL.PAYER_LABEL' | translate }}<span
                         class="text-danger">*</span></label>
-                <select [(ngModel)]="payer" name="payer" class="form-control" [class.is-invalid]="formErrors['payer']"
-                    [class.is-valid]="formValidated && !formErrors['payer'] && payer" required>
-                    <option value="">{{ 'CHECKS.MODAL.SELECT_PAYER' | translate }}</option>
-                    <option *ngFor="let participant of participants" [value]="participant">{{ participant }}</option>
-                </select>
-                <div class="invalid-feedback" *ngIf="formErrors['payer']">{{ formErrors['payer'] }}</div>
+                <div class="dropdown w-100">
+                    <button class="btn form-control text-start d-flex justify-content-between align-items-center"
+                            [class.is-invalid]="formErrors['payer']"
+                            [class.is-valid]="formValidated && !formErrors['payer'] && payer"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                        <span>{{ payer || ('CHECKS.MODAL.SELECT_PAYER' | translate) }}</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <ul class="dropdown-menu w-100">
+                        <li *ngFor="let participant of participants">
+                            <a class="dropdown-item" href="javascript:void(0)" (click)="payer = participant">
+                                {{ participant }}
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="invalid-feedback d-block" *ngIf="formErrors['payer']">{{ formErrors['payer'] }}</div>
             </div>
             <div class="form-group mb-3">
                 <i class="bi bi-cash-stack mx-1"></i>

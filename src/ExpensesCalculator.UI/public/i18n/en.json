@@ -203,7 +203,8 @@
       "TOTAL_SUM": "Total Sum",
       "USER_COUNT": "User Count",
       "RATING": "Rating",
-      "TAGS": "Tags"
+      "TAGS": "Tags",
+      "APPLY": "Apply"
     },
     "SORT": {
       "CAPTION": "Sort",
@@ -292,7 +293,10 @@
     "EXPENSES_ACCORDION_TITLE": "Expenses List",
     "EXPENSES_ACCORDION_CONTENT": "This accordion shows all your expenses. Each row displays the date and location. Click the arrow to expand and view participants, total sum, and action buttons to manage the expense.",
     "PAGINATION_TITLE": "Pagination Controls",
-    "PAGINATION_CONTENT": "Navigate through your expenses with these controls. Change the number of items displayed per page using the dropdown on the right."
+    "PAGINATION_CONTENT": "Navigate through your expenses with these controls. Change the number of items displayed per page using the dropdown on the right.",
+    "PREV_BTN": "Previous",
+    "NEXT_BTN": "Next",
+    "END_BTN": "End tour"
   },
   "TOUR_DETAILS": {
     "BACK_BTN_TITLE": "Back to List",
@@ -321,6 +325,8 @@
     "SEARCH_FILTER_CONTENT": "Search your items by different criteria. Use the dropdown to switch between filtering by name, description, price, amount, total sum, user count, or rating. Type in the search box to find specific items.",
     "SORT_BAR_TITLE": "Sort Options",
     "SORT_BAR_CONTENT": "Sort your items by different attributes. Click the dropdown to choose a column (name, price, amount, total price, user count, or rating) and toggle between ascending and descending order.",
+    "FILTER_SORT_CONTROLS_TITLE": "Filter & Sort",
+    "FILTER_SORT_CONTROLS_CONTENT": "Use the Filter button to search items, apply tag filters, and toggle showing only your items. Use the Sort dropdown to sort by name, price, amount, total price, user count, or rating.",
     "ADD_ITEM_TITLE": "Add New Item",
     "ADD_ITEM_CONTENT": "Click this button to add a new item to your recommendations. You can add items with name, description, price, amount, rating, and tags. These are your personal items that you can only access from this recommendations view.",
     "ONLY_MY_ITEMS_TITLE": "Filter Your Items",

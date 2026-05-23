@@ -69,7 +69,7 @@
     <hr class="w-100 my-1" style="border-color: #080f27; opacity: 1;" />
 
     <!-- Check List Component -->
-    <app-check-list [dayExpensesId]="id" [participants]="dayExpenses?.participants || []" [checks]="checks" [scrollToCheckId]="scrollToCheckId" [scrollToItemId]="scrollToItemId" (checksLoaded)="onChecksLoaded()"></app-check-list>
+    <app-check-list [dayExpensesId]="id" [dayExpensesLocation]="dayExpenses?.location" [dayExpensesDate]="dayExpenses?.date" [currentLocale]="currentLocale" [participants]="dayExpenses?.participants || []" [checks]="checks" [scrollToCheckId]="scrollToCheckId" [scrollToItemId]="scrollToItemId" (checksLoaded)="onChecksLoaded()"></app-check-list>
 </div>
 
 <app-modal-window [modalId]="'staticBackdrop'" [modalTitle]="modalTitle" [currentModalContent]="currentModalContent">

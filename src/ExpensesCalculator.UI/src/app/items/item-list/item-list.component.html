@@ -9,12 +9,12 @@
                 </div>
             </div>
 
-            <!-- Add Button and Filter/Sort Controls -->
-            <div *ngIf="itemsList.length > 0" class="d-flex justify-content-end pb-lg-2 px-0 px-md-2 my-2 my-md-3">
+            <!-- Add Button and Filter/Sort Controls for larger screens -->
+            <div *ngIf="itemsList.length > 0" class="d-none d-lg-flex justify-content-end pb-2 px-2 my-3">
                 <div class="col-12">
-                    <div class="d-flex flex-column flex-lg-row gap-2 align-items-stretch align-items-lg-center justify-content-lg-between">
-                        <div class="d-flex flex-column ms-md-2 align-self-start align-self-lg-center">
-                            <small class="text-white-50 mb-1 d-none d-sm-block" style="font-size: 0.7rem;">
+                    <div class="d-flex flex-row gap-2 align-items-center justify-content-between">
+                        <div class="d-flex flex-column ms-2">
+                            <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
                                 <i class="bi bi-table me-1"></i>{{ 'ITEMS.DATA' | translate }}
                             </small>
                             <button id="addItemButton" class="btn btn-outline-primary text-white" (click)="openModal('add')"
@@ -22,6 +22,53 @@
                                 <i class="bi bi-plus-circle me-1"></i>{{ 'ITEMS.ADD' | translate }}
                             </button>
                         </div>
+                        <div class="d-flex flex-row gap-2 align-items-center">
+                            <div class="d-flex flex-column">
+                                <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
+                                    <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
+                                </small>
+                                <app-filter-bar
+                                    [filterOptions]="filterOptions"
+                                    [selectedCriteria]="filterCriteria"
+                                    [filterText]="filterText"
+                                    [placeholderKey]="'ITEMS.SEARCH'"
+                                    (criteriaChange)="changeFilterCriteria($event)"
+                                    (filterTextChange)="onFilterChange($event)">
+                                </app-filter-bar>
+                            </div>
+                            <div class="d-flex flex-column">
+                                <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
+                                    <i class="bi bi-sort-down me-1"></i>{{ 'ITEMS.SORT.CAPTION' | translate }}
+                                </small>
+                                <app-sort-bar [sortOptions]="sortOptions" [selectedColumn]="sortColumn"
+                                    [selectedOrder]="sortOrder" (sortChange)="onSortChange($event)">
+                                </app-sort-bar>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Button for small screens -->
+            <div *ngIf="itemsList.length > 0" class="d-block d-lg-none mb-2 px-0">
+                <button class="btn btn-outline-primary text-white w-100" (click)="openModal('add')"
+                    [disabled]="loading">
+                    <i class="bi bi-plus-circle me-1"></i>{{ 'ITEMS.ADD' | translate }}
+                </button>
+            </div>
+
+            <!-- Collapsible Filter/Sort controls for small screens -->
+            <div *ngIf="itemsList.length > 0" class="d-block d-lg-none mb-2 px-0">
+                <button class="btn btn-sm btn-outline-primary text-white w-100"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        [attr.data-bs-target]="'#filterSortCollapse-' + checkId"
+                        [attr.aria-expanded]="false"
+                        [attr.aria-controls]="'filterSortCollapse-' + checkId">
+                    <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }} & <i class="bi bi-sort-down me-1"></i>{{ 'ITEMS.SORT.CAPTION' | translate }}
+                </button>
+                <div class="collapse mt-2" [id]="'filterSortCollapse-' + checkId">
+                    <div class="d-flex flex-column gap-2">
                         <div class="d-flex flex-column">
                             <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
                                 <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
@@ -35,30 +82,18 @@
                                 (filterTextChange)="onFilterChange($event)">
                             </app-filter-bar>
                         </div>
-                        <div class="d-none d-lg-flex flex-column">
+                        <div class="d-flex flex-column">
                             <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
                                 <i class="bi bi-sort-down me-1"></i>{{ 'ITEMS.SORT.CAPTION' | translate }}
                             </small>
-                            <app-sort-bar [sortOptions]="sortOptions" [selectedColumn]="sortColumn"
-                                [selectedOrder]="sortOrder" (sortChange)="onSortChange($event)">
+                            <app-sort-bar
+                                [sortOptions]="sortOptions"
+                                [selectedColumn]="sortColumn"
+                                [selectedOrder]="sortOrder"
+                                (sortChange)="onSortChange($event)">
                             </app-sort-bar>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Sort controls for small screens -->
-            <div *ngIf="itemsList.length > 0" class="d-block d-lg-none mb-2 px-0">
-                <div class="d-flex flex-column">
-                    <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
-                        <i class="bi bi-sort-down me-1"></i>{{ 'ITEMS.SORT.CAPTION' | translate }}
-                    </small>
-                    <app-sort-bar
-                        [sortOptions]="sortOptions"
-                        [selectedColumn]="sortColumn"
-                        [selectedOrder]="sortOrder"
-                        (sortChange)="onSortChange($event)">
-                    </app-sort-bar>
                 </div>
             </div>
 
@@ -72,7 +107,10 @@
             <!-- No Items Message -->
             <div *ngIf="!loading && itemsList.length === 0" class="text-white text-center py-4">
                 <h5>{{ 'ITEMS.NO_ITEMS' | translate }}</h5>
-                <button class="btn btn-outline-primary text-white mt-3" (click)="openModal('add')" [tourAnchor]="'add-item-btn-' + checkId">
+                <button *ngIf="isFirstCheck" class="btn btn-outline-primary text-white mt-3" (click)="openModal('add')" [tourAnchor]="'add-item-btn-' + checkId">
+                    <i class="bi bi-plus-circle me-1"></i>{{ 'ITEMS.ADD' | translate }}
+                </button>
+                <button *ngIf="!isFirstCheck" class="btn btn-outline-primary text-white mt-3" (click)="openModal('add')">
                     <i class="bi bi-plus-circle me-1"></i>{{ 'ITEMS.ADD' | translate }}
                 </button>
             </div>
@@ -84,10 +122,10 @@
 
             <!-- Items Cards with Pagination -->
             <div *ngIf="filteredItemsList.length > 0" class="d-flex align-items-center">
-                <!-- Previous Button -->
-                <button *ngIf="totalPages > 1" class="btn btn-outline-primary text-white me-1"
+                <!-- Previous Button (Desktop only) -->
+                <button *ngIf="totalPages > 1" class="btn btn-outline-primary text-white me-1 d-none d-md-flex"
                     (click)="goToPreviousPage()" [disabled]="currentPage === 1"
-                    style="width: 20px; height: 60px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0;">
+                    style="width: 20px; height: 60px; align-items: center; justify-content: center; flex-shrink: 0; padding: 0;">
                     <i class="bi bi-chevron-left"></i>
                 </button>
 
@@ -157,12 +195,26 @@
                     </div>
                 </div>
 
-                <!-- Next Button -->
-                <button *ngIf="totalPages > 1" class="btn btn-outline-primary text-white ms-1" (click)="goToNextPage()"
-                    [disabled]="currentPage === totalPages"
-                    style="width: 20px; height: 60px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0;">
+                <!-- Next Button (Desktop only) -->
+                <button *ngIf="totalPages > 1" class="btn btn-outline-primary text-white ms-1 d-none d-md-flex"
+                    (click)="goToNextPage()" [disabled]="currentPage === totalPages"
+                    style="width: 20px; height: 60px; align-items: center; justify-content: center; flex-shrink: 0; padding: 0;">
                     <i class="bi bi-chevron-right"></i>
                 </button>
+            </div>
+
+            <!-- Pagination buttons for small screens -->
+            <div *ngIf="filteredItemsList.length > 0 && totalPages > 1" class="d-flex d-md-none justify-content-center mt-3 mb-2">
+                <div class="btn-group" role="group">
+                    <button class="btn btn-outline-primary text-white" (click)="goToPreviousPage()"
+                        [disabled]="currentPage === 1" style="min-width: 120px; font-size: 1.8rem;">
+                        <i class="bi bi-arrow-left" style="display: inline-block; transform: scaleX(2.5);"></i>
+                    </button>
+                    <button class="btn btn-outline-primary text-white" (click)="goToNextPage()"
+                        [disabled]="currentPage === totalPages" style="min-width: 120px; font-size: 1.8rem;">
+                        <i class="bi bi-arrow-right" style="display: inline-block; transform: scaleX(2.5);"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- Items count -->
@@ -207,7 +259,7 @@
                     style="resize: none;"></textarea>
             </div>
             <div class="row mb-2">
-                <div class="col-3">
+                <div class="col-6 col-md-3">
                     <div class="form-group">
                         <i class="bi bi-currency-dollar mx-1"></i>
                         <label class="control-label">{{ 'ITEMS.MODAL.PRICE' | translate }}<span
@@ -218,7 +270,7 @@
                         <div class="invalid-feedback" *ngIf="formErrors['price']">{{ formErrors['price'] }}</div>
                     </div>
                 </div>
-                <div class="col-3">
+                <div class="col-6 col-md-3">
                     <div class="form-group">
                         <i class="bi bi-grid-fill mx-1"></i>
                         <label class="control-label">{{ 'ITEMS.MODAL.AMOUNT' | translate }}<span
@@ -229,7 +281,7 @@
                         <div class="invalid-feedback" *ngIf="formErrors['amount']">{{ formErrors['amount'] }}</div>
                     </div>
                 </div>
-                <div class="col-6">
+                <div class="col-12 col-md-6">
                     <div class="form-group">
                         <i class="bi bi-star-fill mx-1"></i>
                         <label class="control-label mb-0">{{ 'ITEMS.MODAL.RATING' | translate }}<span
@@ -286,17 +338,17 @@
                         <i class="bi bi-people-fill mx-1"></i>
                         <label class="control-label">{{ 'ITEMS.MODAL.USERS' | translate }}<span
                                 class="text-danger">*</span></label>
-                        <div class="dropdown w-100" style="position: relative; z-index: 1050;">
+                        <div class="dropdown w-100" style="position: relative;">
                             <button class="form-control dropdown-toggle text-start"
                                 [class.is-invalid]="formErrors['users']"
                                 [class.is-valid]="formValidated && !formErrors['users'] && selectedUsers.length > 0"
                                 type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
-                                data-bs-container="body" aria-expanded="false">
+                                aria-expanded="false">
                                 {{ selectedUsers.length > 0 ? selectedUsers.join(', ') : ('ITEMS.MODAL.SELECT_USERS' |
                                 translate) }}
                             </button>
                             <ul class="dropdown-menu w-100"
-                                style="position: absolute; z-index: 9999; max-height: 150px; overflow-y: auto;">
+                                style="max-height: 150px; overflow-y: auto;">
                                 <li>
                                     <label class="dropdown-item fw-bold">
                                         <input type="checkbox" [checked]="isAllUsersSelected()"
@@ -349,7 +401,7 @@
                     style="resize: none;"></textarea>
             </div>
             <div class="row mb-2">
-                <div class="col-3">
+                <div class="col-6 col-md-3">
                     <div class="form-group">
                         <i class="bi bi-currency-dollar mx-1"></i>
                         <label class="control-label">{{ 'ITEMS.MODAL.PRICE' | translate }}<span
@@ -360,7 +412,7 @@
                         <div class="invalid-feedback" *ngIf="formErrors['price']">{{ formErrors['price'] }}</div>
                     </div>
                 </div>
-                <div class="col-3">
+                <div class="col-6 col-md-3">
                     <div class="form-group">
                         <i class="bi bi-grid-fill mx-1"></i>
                         <label class="control-label">{{ 'ITEMS.MODAL.AMOUNT' | translate }}<span
@@ -371,7 +423,7 @@
                         <div class="invalid-feedback" *ngIf="formErrors['amount']">{{ formErrors['amount'] }}</div>
                     </div>
                 </div>
-                <div class="col-6">
+                <div class="col-12 col-md-6">
                     <div class="form-group">
                         <i class="bi bi-star-fill mx-1"></i>
                         <label class="control-label mb-0">{{ 'ITEMS.MODAL.RATING' | translate }}<span
@@ -426,17 +478,17 @@
                         <i class="bi bi-people-fill mx-1"></i>
                         <label class="control-label">{{ 'ITEMS.MODAL.USERS' | translate }}<span
                                 class="text-danger">*</span></label>
-                        <div class="dropdown w-100" style="position: relative; z-index: 1050;">
+                        <div class="dropdown w-100" style="position: relative;">
                             <button class="form-control dropdown-toggle text-start"
                                 [class.is-invalid]="formErrors['users']"
                                 [class.is-valid]="formValidated && !formErrors['users'] && selectedUsers.length > 0"
                                 type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
-                                data-bs-container="body" aria-expanded="false">
+                                aria-expanded="false">
                                 {{ selectedUsers.length > 0 ? selectedUsers.join(', ') : ('ITEMS.MODAL.SELECT_USERS' |
                                 translate) }}
                             </button>
                             <ul class="dropdown-menu w-100"
-                                style="position: absolute; z-index: 9999; max-height: 150px; overflow-y: auto;">
+                                style="max-height: 150px; overflow-y: auto;">
                                 <li>
                                     <label class="dropdown-item fw-bold">
                                         <input type="checkbox" [checked]="isAllUsersSelected()"
@@ -480,21 +532,21 @@
                 <textarea [value]="comment" class="form-control" rows="3" disabled></textarea>
             </div>
             <div class="row mb-3">
-                <div class="col-3">
+                <div class="col-6 col-md-3">
                     <div class="form-group">
                         <i class="bi bi-currency-dollar mx-1"></i>
                         <label class="control-label">{{ 'ITEMS.MODAL.PRICE' | translate }}</label>
                         <input type="number" [value]="price" class="form-control" disabled />
                     </div>
                 </div>
-                <div class="col-3">
+                <div class="col-6 col-md-3">
                     <div class="form-group">
                         <i class="bi bi-grid-fill mx-1"></i>
                         <label class="control-label">{{ 'ITEMS.MODAL.AMOUNT' | translate }}</label>
                         <input type="number" [value]="amount" class="form-control" disabled />
                     </div>
                 </div>
-                <div class="col-6">
+                <div class="col-12 col-md-6">
                     <div class="form-group">
                         <i class="bi bi-star-fill mx-1"></i>
                         <label class="control-label mb-0">{{ 'ITEMS.MODAL.RATING' | translate }}</label>

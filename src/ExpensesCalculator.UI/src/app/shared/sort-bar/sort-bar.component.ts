@@ -26,6 +26,7 @@ export class SortBarComponent implements OnInit, OnChanges, OnDestroy, AfterView
   sortButtonWidth: string = 'auto';
   private sortButtonWidthCache: Map<string, string> = new Map();
   private langChangeSub!: Subscription;
+  private resizeListener: (() => void) | null = null;
 
   // Temporary sort state for modal
   tempSortColumn: string = '';
@@ -57,11 +58,20 @@ export class SortBarComponent implements OnInit, OnChanges, OnDestroy, AfterView
     this.langChangeSub = this.translate.onLangChange.subscribe(() => {
       setTimeout(() => this.syncSortButtonWidth(), 0);
     });
+
+    // Re-sync button width when window is resized
+    this.resizeListener = () => {
+      this.syncSortButtonWidth();
+    };
+    window.addEventListener('resize', this.resizeListener);
   }
 
   ngOnDestroy(): void {
     if (this.langChangeSub) {
       this.langChangeSub.unsubscribe();
+    }
+    if (this.resizeListener) {
+      window.removeEventListener('resize', this.resizeListener);
     }
   }
 
@@ -107,6 +117,12 @@ export class SortBarComponent implements OnInit, OnChanges, OnDestroy, AfterView
   }
 
   syncSortButtonWidth(): void {
+    // On small screens (< 576px), let CSS handle the width
+    if (window.innerWidth < 576) {
+      this.sortButtonWidth = 'auto';
+      return;
+    }
+
     // Find the longest translated text with arrow
     let longestText = '';
     let maxLength = 0;

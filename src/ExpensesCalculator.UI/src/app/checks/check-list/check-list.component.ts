@@ -25,6 +25,9 @@ declare var bootstrap: any;
 })
 export class CheckListComponent implements OnInit, OnChanges {
   @Input() dayExpensesId!: string;
+  @Input() dayExpensesLocation?: string;
+  @Input() dayExpensesDate?: Date;
+  @Input() currentLocale: string = 'en';
   @Input() participants: string[] = [];
   @Input() checks?: Check[]; // Optional: if provided, use these instead of loading
   @Input() scrollToCheckId?: string;

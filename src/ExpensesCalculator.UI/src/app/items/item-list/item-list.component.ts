@@ -32,6 +32,7 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy, AfterVie
   @Input() isLoading?: boolean; // Optional: external loading state
   @Input() highlightedItemId?: string;
   @Input() disableTooltipManagement: boolean = false; // When true, parent handles tooltips
+  @Input() isFirstCheck: boolean = false; // Indicates if this is the first check (for tour anchor)
   @Output() checkSumUpdated = new EventEmitter<{ checkId: string, newSum: number }>();
   @Output() itemsChanged = new EventEmitter<string>(); // Emit when items are modified (checkId)
 
@@ -123,6 +124,9 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy, AfterVie
       this.applyLocalFiltering();
     });
 
+    // Set items per page based on screen size
+    this.setItemsPerPageByScreenSize();
+
     // If items are provided, use them; otherwise load them
     if (this.items && this.items.length > 0) {
       this.itemsList = this.items;
@@ -182,12 +186,22 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy, AfterVie
     }
 
     // Clean up modal if it was moved to body
-    if (this.modalInstance) {
-      const modalElement = document.getElementById('itemsModal-' + this.checkId);
-      if (modalElement && modalElement.parentElement === document.body) {
+    const modalElement = document.getElementById('itemsModal-' + this.checkId);
+    if (modalElement) {
+      // Try to get the modal instance if we lost our reference
+      if (!this.modalInstance) {
+        this.modalInstance = bootstrap.Modal.getInstance(modalElement);
+      }
+
+      if (this.modalInstance) {
+        this.modalInstance.dispose();
+        this.modalInstance = null;
+      }
+
+      // Remove from body if it was moved there
+      if (modalElement.parentElement === document.body) {
         document.body.removeChild(modalElement);
       }
-      this.modalInstance.dispose();
     }
   }
 
@@ -371,15 +385,10 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy, AfterVie
   scrollToHighlightedItem(): void {
     if (!this.highlightedItemId) return;
 
-    const itemElement = document.querySelector(`.highlighted-item`);
-    if (itemElement) {
-      itemElement.scrollIntoView({ behavior: 'auto', block: 'center' });
-
-      // Remove highlight after animation completes (2s * 3 iterations = 6s)
-      setTimeout(() => {
-        this.highlightedItemId = undefined;
-      }, 6000);
-    }
+    // Remove highlight after animation completes (1s * 1 iteration = 1s)
+    setTimeout(() => {
+      this.highlightedItemId = undefined;
+    }, 1000);
   }
 
   goToNextPage(): void {
@@ -445,10 +454,7 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy, AfterVie
     this.modalTitle = this.translate.instant(`ITEMS.MODAL.${type.toUpperCase()}_TITLE`);
 
     const modalElement = document.getElementById('itemsModal-' + this.checkId);
-    if (!modalElement) {
-      console.error('Modal element not found!');
-      return;
-    }
+    if (!modalElement) return;
 
     if (type === 'add') {
       this.clearFormData();
@@ -470,6 +476,14 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy, AfterVie
   }
 
   hideModal(): void {
+    // Try to get the modal instance if we lost our reference
+    if (!this.modalInstance) {
+      const modalElement = document.getElementById('itemsModal-' + this.checkId);
+      if (modalElement) {
+        this.modalInstance = bootstrap.Modal.getInstance(modalElement);
+      }
+    }
+
     if (this.modalInstance) {
       this.modalInstance.hide();
       this.formErrors = {};
@@ -737,5 +751,14 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy, AfterVie
   get paginationEndIndex(): number {
     if (this.filteredItemsList.length === 0) return 0;
     return Math.min(this.currentPage * this.itemsPerPage, this.filteredItemsList.length);
+  }
+
+  setItemsPerPageByScreenSize(): void {
+    // Bootstrap's md breakpoint is 768px
+    if (window.innerWidth < 768) {
+      this.itemsPerPage = 3;
+    } else {
+      this.itemsPerPage = 8;
+    }
   }
 }
