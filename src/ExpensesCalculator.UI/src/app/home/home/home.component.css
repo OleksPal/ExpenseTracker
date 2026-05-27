@@ -619,3 +619,72 @@
     font-size: 1rem;
   }
 }
+
+@media (max-width: 576px) {
+  /* Reduce card padding for small screens */
+  .feature-card,
+  .step-card,
+  .use-case-card,
+  .problem-card,
+  .solution-card {
+    padding: 0.7rem !important;
+  }
+
+  .use-case-example {
+    padding: 0.7rem !important;
+  }
+
+  .tab-content {
+    padding: 0.7rem !important;
+  }
+
+  /* Increase secondary text size */
+  .hero-section .lead,
+  .steps-section .lead,
+  .tabs-section .lead,
+  .use-cases-section .lead,
+  .problem-solution-section .lead {
+    font-size: 1.15rem !important;
+  }
+
+  .feature-card p,
+  .step-card p,
+  .use-case-card p,
+  .problem-card p,
+  .solution-card p {
+    font-size: 1rem !important;
+  }
+
+  .use-case-example small,
+  .text-white-50 {
+    font-size: 0.95rem !important;
+  }
+
+  .feature-list li {
+    font-size: 1.05rem !important;
+  }
+
+  /* Make tab buttons same width */
+  .tab-btn {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Center problem/solution card content */
+  .problem-card,
+  .solution-card {
+    text-align: center !important;
+  }
+
+  .problem-icon,
+  .solution-icon {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  /* Make btn-lg bigger on small screens */
+  .btn-lg {
+    padding: 0.85rem 2.2rem !important;
+    font-size: 1.15rem !important;
+  }
+}

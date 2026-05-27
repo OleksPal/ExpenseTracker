@@ -170,7 +170,7 @@
                         <td class="text-nowrap text-white">{{ check.totalSum | currency:'UAH':'₴' }}</td>
                         <td>
                             <div class="d-flex gap-2 justify-content-end pe-3">
-                                <button class="btn btn-sm btn-outline-warning text-white btn-action-edit" type="button"
+                                <button class="btn btn-sm btn-outline-primary text-white btn-action-edit" type="button"
                                     (click)="openModal('edit', check.id)"
                                     title="{{ 'CHECKS.EDIT' | translate }}">
                                     <i class="bi bi-pencil"></i>
@@ -225,6 +225,7 @@
                         [attr.data-bs-target]="'#accordionCollapse' + check.id"
                         aria-expanded="false"
                         [attr.aria-controls]="'accordionCollapse' + check.id"
+                        (click)="toggleCheckExpansion(check.id)"
                         style="padding: 0.75rem 0.5rem;">
                     <div class="d-flex justify-content-between align-items-center w-100 me-2">
                         <div class="d-flex flex-column flex-grow-1">
@@ -256,7 +257,7 @@
 
                         <!-- Action Buttons -->
                         <div class="d-flex gap-2">
-                            <button class="btn btn-sm btn-outline-warning text-white flex-fill btn-action-edit"
+                            <button class="btn btn-sm btn-outline-primary text-white flex-fill btn-action-edit"
                                     (click)="openModal('edit', check.id)">
                                 <i class="bi bi-pencil me-1"></i>{{ 'CHECKS.EDIT' | translate }}
                             </button>
@@ -266,35 +267,20 @@
                             </button>
                         </div>
 
-                        <!-- Expand/Collapse Check Items -->
-                        <div class="d-flex justify-content-center mt-2">
-                            <button class="btn btn-sm btn-outline-primary text-white w-100" type="button"
-                                    data-bs-toggle="collapse"
-                                    [attr.data-bs-target]="'#collapseItems' + check.id"
-                                    [attr.aria-expanded]="isCheckExpanded(check.id)"
-                                    [attr.aria-controls]="'collapseItems' + check.id"
-                                    (click)="toggleCheckExpansion(check.id)">
-                                <i [class]="isCheckExpanded(check.id) ? 'bi bi-dash-square-fill me-1' : 'bi bi-plus-square-fill me-1'"></i>
-                                {{ isCheckExpanded(check.id) ? ('Hide Items' | translate) : ('Show Items' | translate) }}
-                            </button>
-                        </div>
-
-                        <!-- Items List -->
-                        <div class="collapse" [id]="'collapseItems' + check.id">
-                            <div class="mt-2">
-                                <app-item-list
-                                    [checkId]="check.id"
-                                    [dayExpensesId]="dayExpensesId"
-                                    [users]="participants"
-                                    [items]="getItemsForCheck(check.id)"
-                                    [isLoading]="isCheckItemsLoading(check.id)"
-                                    [highlightedItemId]="highlightedItemId"
-                                    [disableTooltipManagement]="true"
-                                    [isFirstCheck]="false"
-                                    (itemsChanged)="loadItemsForCheck($event)"
-                                    (checkSumUpdated)="onCheckSumUpdated($event)">
-                                </app-item-list>
-                            </div>
+                        <!-- Items List (always visible) -->
+                        <div class="mt-2">
+                            <app-item-list
+                                [checkId]="check.id"
+                                [dayExpensesId]="dayExpensesId"
+                                [users]="participants"
+                                [items]="getItemsForCheck(check.id)"
+                                [isLoading]="isCheckItemsLoading(check.id)"
+                                [highlightedItemId]="highlightedItemId"
+                                [disableTooltipManagement]="true"
+                                [isFirstCheck]="false"
+                                (itemsChanged)="loadItemsForCheck($event)"
+                                (checkSumUpdated)="onCheckSumUpdated($event)">
+                            </app-item-list>
                         </div>
                     </div>
                 </div>
@@ -411,7 +397,7 @@
                 <label class="control-label">{{ 'CHECKS.MODAL.SUM_LABEL' | translate }}</label>
                 <input [value]="currentCheckTotalSum | currency:'UAH':'₴'" class="form-control" disabled readonly />
             </div>
-            <button type="button" class="btn btn-warning" (click)="editCheck()">
+            <button type="button" class="btn btn-primary" (click)="editCheck()">
                 <i class="bi bi-pencil me-1"></i>{{ 'CHECKS.MODAL.EDIT_BUTTON' | translate }}
             </button>
         </form>
