@@ -155,14 +155,6 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy, AfterVie
         }, 100);
       }
     });
-
-    // Move modal to body to avoid z-index/overflow issues in accordion layouts
-    setTimeout(() => {
-      const modalElement = document.getElementById('itemsModal-' + this.checkId);
-      if (modalElement && modalElement.parentElement !== document.body) {
-        document.body.appendChild(modalElement);
-      }
-    }, 0);
   }
 
 
@@ -183,25 +175,6 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy, AfterVie
     }
     if (this.filterTextSubscription) {
       this.filterTextSubscription.unsubscribe();
-    }
-
-    // Clean up modal if it was moved to body
-    const modalElement = document.getElementById('itemsModal-' + this.checkId);
-    if (modalElement) {
-      // Try to get the modal instance if we lost our reference
-      if (!this.modalInstance) {
-        this.modalInstance = bootstrap.Modal.getInstance(modalElement);
-      }
-
-      if (this.modalInstance) {
-        this.modalInstance.dispose();
-        this.modalInstance = null;
-      }
-
-      // Remove from body if it was moved there
-      if (modalElement.parentElement === document.body) {
-        document.body.removeChild(modalElement);
-      }
     }
   }
 
@@ -476,14 +449,6 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy, AfterVie
   }
 
   hideModal(): void {
-    // Try to get the modal instance if we lost our reference
-    if (!this.modalInstance) {
-      const modalElement = document.getElementById('itemsModal-' + this.checkId);
-      if (modalElement) {
-        this.modalInstance = bootstrap.Modal.getInstance(modalElement);
-      }
-    }
-
     if (this.modalInstance) {
       this.modalInstance.hide();
       this.formErrors = {};

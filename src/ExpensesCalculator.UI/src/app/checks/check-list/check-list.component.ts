@@ -269,6 +269,11 @@ export class CheckListComponent implements OnInit, OnChanges {
   }
 
   loadItemsForCheck(checkId: string): void {
+    // Skip if already loaded or currently loading
+    if (this.checkItemsMap.has(checkId) || this.checkLoadingMap.get(checkId)) {
+      return;
+    }
+
     // Set loading state
     this.checkLoadingMap.set(checkId, true);
 
