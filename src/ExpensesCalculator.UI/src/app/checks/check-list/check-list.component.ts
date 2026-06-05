@@ -1,25 +1,23 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { ModalWindowComponent } from '../../shared/modal-window/modal-window.component';
-import { ValidationErrors, parseValidationErrors } from '../../shared/models/validation-errors.model';
-import { ChecksService, Check, DeleteCheckResponse } from '../../services/checks.service';
+import { ChecksService, Check } from '../../services/checks.service';
 import { ItemListComponent } from '../../items/item-list/item-list.component';
 import { ItemsService, Item } from '../../services/items.service';
-import { DayExpensesTotalSumUpdateService } from '../../services/day-expenses-total-sum-update.service';
-import { ToastService } from '../../services/toast.service';
-import { FormValidationService } from '../../services/form-validation.service';
+import { ModalService } from '../../services/modal.service';
 import { FilterBarComponent, FilterOption } from '../../shared/filter-bar/filter-bar.component';
 import { SortBarComponent, SortOption } from '../../shared/sort-bar/sort-bar.component';
 import { TourAnchorNgBootstrapDirective } from 'ngx-ui-tour-ng-bootstrap';
+import { CheckAddFormComponent } from '../../modals/check-form/check-add-form.component';
+import { CheckEditFormComponent } from '../../modals/check-form/check-edit-form.component';
+import { CheckDeleteFormComponent } from '../../modals/check-form/check-delete-form.component';
 
 declare var bootstrap: any;
 
 @Component({
   selector: 'app-check-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalWindowComponent, TranslatePipe, ItemListComponent, FilterBarComponent, SortBarComponent, TourAnchorNgBootstrapDirective],
+  imports: [CommonModule, TranslatePipe, ItemListComponent, FilterBarComponent, SortBarComponent, TourAnchorNgBootstrapDirective],
   templateUrl: './check-list.component.html',
   styleUrl: './check-list.component.css'
 })
@@ -40,21 +38,6 @@ export class CheckListComponent implements OnInit, OnChanges {
   expandedCheckIds: Set<string> = new Set();
   checkItemsMap: Map<string, Item[]> = new Map(); // Store items per check
   checkLoadingMap: Map<string, boolean> = new Map(); // Track loading state per check
-
-  // Modal properties
-  modalInstance: any;
-  currentModalContent: 'add' | 'edit' | 'delete' = 'add';
-  modalTitle: string = '';
-
-  // Form properties
-  id = '';
-  location = '';
-  payer = '';
-  currentCheckTotalSum = 0;
-
-  // Validation properties
-  formErrors: ValidationErrors = {};
-  formValidated = false;
 
   // Filter and sort properties
   filterText = '';
@@ -82,16 +65,12 @@ export class CheckListComponent implements OnInit, OnChanges {
   private shouldScrollToItem = false;
   highlightedItemId?: string;
 
-  // Inject services using inject() for better SSR compatibility
-  private dayExpensesTotalSumUpdateService = inject(DayExpensesTotalSumUpdateService);
-
   constructor(
     private checksService: ChecksService,
     private itemsService: ItemsService,
     private translate: TranslateService,
     private cdr: ChangeDetectorRef,
-    private toastService: ToastService,
-    private formValidationService: FormValidationService
+    private modalService: ModalService
   ) {}
 
   ngOnInit(): void {
@@ -269,12 +248,10 @@ export class CheckListComponent implements OnInit, OnChanges {
   }
 
   loadItemsForCheck(checkId: string): void {
-    // Skip if already loaded or currently loading
-    if (this.checkItemsMap.has(checkId) || this.checkLoadingMap.get(checkId)) {
+    if (this.checkLoadingMap.get(checkId)) {
       return;
     }
 
-    // Set loading state
     this.checkLoadingMap.set(checkId, true);
 
     this.itemsService.getAllCheckItems(checkId).subscribe({
@@ -332,187 +309,63 @@ export class CheckListComponent implements OnInit, OnChanges {
 
   // Modal management methods
   openModal(type: 'add' | 'edit' | 'delete', id: string = ''): void {
-    this.currentModalContent = type;
-    this.modalTitle = this.translate.instant(`CHECKS.MODAL.${type.toUpperCase()}_TITLE`);
-
-    const modalElement = document.getElementById('checksModal');
-    if (!modalElement) return;
-
     if (type === 'add') {
-      this.clearFormData();
-    } else if (id) {
-      // Load check data from local array (no server call needed)
+      this.modalService.open(
+        CheckAddFormComponent,
+        this.translate.instant('CHECKS.MODAL.ADD_TITLE'),
+        {
+          participants: this.participants,
+          dayExpensesId: this.dayExpensesId,
+          onSuccess: () => this.refreshChecks()
+        },
+        'md'
+      );
+      return;
+    }
+
+    if (type === 'edit') {
       const check = this.checksList.find(c => c.id === id);
-      if (check) {
-        this.id = check.id;
-        this.location = check.location;
-        this.payer = check.payer;
-        this.currentCheckTotalSum = check.totalSum;
-      }
+      if (!check) return;
+
+      this.modalService.open(
+        CheckEditFormComponent,
+        this.translate.instant('CHECKS.MODAL.EDIT_TITLE'),
+        {
+          participants: this.participants,
+          checkId: check.id,
+          location: check.location,
+          payer: check.payer,
+          onSuccess: () => this.refreshChecks()
+        },
+        'md'
+      );
+      return;
     }
 
-    if (!this.modalInstance) {
-      this.modalInstance = new bootstrap.Modal(modalElement, {
-        backdrop: 'static',
-        keyboard: false
-      });
+    if (type === 'delete') {
+      const check = this.checksList.find(c => c.id === id);
+      if (!check) return;
+
+      this.modalService.open(
+        CheckDeleteFormComponent,
+        this.translate.instant('CHECKS.MODAL.DELETE_TITLE'),
+        {
+          checkId: check.id,
+          dayExpensesId: this.dayExpensesId,
+          location: check.location,
+          payer: check.payer,
+          totalSum: check.totalSum,
+          onSuccess: () => this.refreshChecks()
+        },
+        'md'
+      );
+      return;
     }
-
-    this.formErrors = {};
-    this.formValidated = false;
-
-    this.modalInstance.show();
   }
 
-  hideModal(): void {
-    if (this.modalInstance) {
-      this.modalInstance.hide();
-      this.formErrors = {};
-      this.formValidated = false;
-      this.clearFormData();
-    }
-  }
-
-  clearFormData(): void {
-    this.id = '';
-    this.location = '';
-    this.payer = '';
-    this.currentCheckTotalSum = 0;
-  }
-
-  // CRUD operations
-  validateCheckForm(): boolean {
-    this.formErrors = {};
-    this.formValidated = true;
-
-    this.formErrors = this.formValidationService.validateCheckForm(this.location, this.payer);
-
-    return !this.formValidationService.hasErrors(this.formErrors);
-  }
-
-  createCheck(): void {
-    if (!this.validateCheckForm()) return;
-    this.formValidated = true;
-
-    this.checksService.createCheck(this.location, this.payer, this.dayExpensesId).subscribe({
-      next: (createdCheck) => {
-        // Add the new check to the list
-        this.checksList.push(createdCheck);
-        this.applyLocalFiltering();
-
-        // Emit event to parent to re-initialize tour with updated step count
-        this.checksLoaded.emit();
-
-        this.hideModal();
-        this.toastService.success(
-          this.translate.instant('CHECKS.TOAST.SUCCESS'),
-          this.translate.instant('CHECKS.TOAST.CREATE_SUCCESS')
-        );
-      },
-      error: error => {
-        this.formErrors = parseValidationErrors(error);
-        this.formValidated = true;
-        if (Object.keys(this.formErrors).length === 0 || this.formErrors['general']) {
-          const errorMessage = this.formErrors['general'] || error?.error?.message || error?.message || this.translate.instant('CHECKS.TOAST.CREATE_ERROR');
-          this.toastService.error(
-            this.translate.instant('CHECKS.TOAST.ERROR'),
-            this.translateBackendError(errorMessage)
-          );
-        }
-      }
-    });
-  }
-
-  editCheck(): void {
-    if (!this.validateCheckForm()) return;
-    this.formValidated = true;
-
-    this.checksService.editCheck(this.id, this.location, this.payer).subscribe({
-      next: (updatedCheck) => {
-        // Update the check in the local list
-        const index = this.checksList.findIndex(c => c.id === this.id);
-        if (index !== -1) {
-          this.checksList[index] = updatedCheck;
-          this.applyLocalFiltering();
-        }
-
-        this.hideModal();
-        this.toastService.success(
-          this.translate.instant('CHECKS.TOAST.SUCCESS'),
-          this.translate.instant('CHECKS.TOAST.EDIT_SUCCESS')
-        );
-      },
-      error: error => {
-        this.formErrors = parseValidationErrors(error);
-        this.formValidated = true;
-        if (Object.keys(this.formErrors).length === 0 || this.formErrors['general']) {
-          const errorMessage = this.formErrors['general'] || error?.error?.message || error?.message || this.translate.instant('CHECKS.TOAST.EDIT_ERROR');
-          this.toastService.error(
-            this.translate.instant('CHECKS.TOAST.ERROR'),
-            this.translateBackendError(errorMessage)
-          );
-        }
-      }
-    });
-  }
-
-  deleteCheck(): void {
-    this.checksService.deleteCheck(this.id).subscribe({
-      next: (response: DeleteCheckResponse) => {
-        // Remove the check from the local list
-        const index = this.checksList.findIndex(c => c.id === this.id);
-        if (index !== -1) {
-          this.checksList.splice(index, 1);
-          // Also remove cached items for this check
-          this.checkItemsMap.delete(this.id);
-          this.checkLoadingMap.delete(this.id);
-          this.applyLocalFiltering();
-
-          // Emit day expenses total sum from backend response
-          this.dayExpensesTotalSumUpdateService.emitDayExpensesTotalSumUpdate(this.dayExpensesId, response.dayExpensesTotalSum);
-
-          // Emit event to parent to re-initialize tour with updated step count
-          this.checksLoaded.emit();
-        }
-
-        this.hideModal();
-        this.toastService.success(
-          this.translate.instant('CHECKS.TOAST.SUCCESS'),
-          this.translate.instant('CHECKS.TOAST.DELETE_SUCCESS')
-        );
-      },
-      error: error => {
-        console.log(error);
-        const errorMessage = error?.error?.message || error?.message || this.translate.instant('CHECKS.TOAST.DELETE_ERROR');
-        this.toastService.error(
-          this.translate.instant('CHECKS.TOAST.ERROR'),
-          this.translateBackendError(errorMessage)
-        );
-      }
-    });
-  }
-
-  // Helper methods
-  translateBackendError(errorMessage: string): string {
-    if (!errorMessage) return '';
-
-    const errorMap: Record<string, string> = {
-      'Invalid data': 'CHECKS.BACKEND_ERRORS.INVALID_DATA',
-      'Unauthorized': 'CHECKS.BACKEND_ERRORS.UNAUTHORIZED'
-    };
-
-    const translationKey = errorMap[errorMessage];
-    if (translationKey) {
-      return this.translate.instant(translationKey);
-    }
-
-    for (const [key, value] of Object.entries(errorMap)) {
-      if (errorMessage.toLowerCase().includes(key.toLowerCase())) {
-        return this.translate.instant(value);
-      }
-    }
-
-    return errorMessage;
+  refreshChecks(): void {
+    this.loadChecks();
+    this.checksLoaded.emit();
   }
 
   getIconOrderClass(column: string): string {

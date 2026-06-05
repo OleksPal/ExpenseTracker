@@ -3,10 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { ModalWindowComponent } from '../../shared/modal-window/modal-window.component';
+import { ModalService } from '../../services/modal.service';
 import { FilterBarComponent, FilterOption } from '../../shared/filter-bar/filter-bar.component';
 import { SortBarComponent, SortOption } from '../../shared/sort-bar/sort-bar.component';
-import { ValidationErrors, parseValidationErrors } from '../../shared/models/validation-errors.model';
+import { RecommendationAddFormComponent } from '../../modals/recommendation-form/recommendation-add-form.component';
+import { RecommendationEditFormComponent } from '../../modals/recommendation-form/recommendation-edit-form.component';
+import { RecommendationDeleteFormComponent } from '../../modals/recommendation-form/recommendation-delete-form.component';
 import { ItemsService, Item } from '../../services/items.service';
 import { ToastService } from '../../services/toast.service';
 import { Subject, Subscription } from 'rxjs';
@@ -18,7 +20,7 @@ declare var bootstrap: any;
 @Component({
   selector: 'app-recommendations',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ModalWindowComponent, FilterBarComponent, SortBarComponent, TranslatePipe, TourAnchorNgBootstrapDirective, TourStepTemplateComponent],
+  imports: [CommonModule, FormsModule, RouterLink, FilterBarComponent, SortBarComponent, TranslatePipe, TourAnchorNgBootstrapDirective, TourStepTemplateComponent],
   templateUrl: './recommendations.component.html',
   styleUrl: './recommendations.component.css'
 })
@@ -33,29 +35,6 @@ export class RecommendationsComponent implements OnInit, AfterViewInit, OnDestro
   itemsPerPage = 12;
   totalPages = 1;
   totalCount = 0;
-
-  // Modal properties
-  modalInstance: any;
-  currentModalContent: 'add' | 'edit' | 'delete' = 'add';
-  modalTitle: string = '';
-
-  // Form properties
-  id = '';
-  name = '';
-  comment = '';
-  price = 0;
-  amount = 1;
-  rating = 0;
-  hoverRating = 0;
-  tags: string[] = [];
-  tagInput = '';
-  selectedUsers: string[] = [];
-  users: string[] = []; // Will be populated from existing items
-  canEditCurrentItem = false;
-
-  // Validation properties
-  formErrors: ValidationErrors = {};
-  formValidated = false;
 
   // Filter and sort properties
   filterText = '';
@@ -131,6 +110,7 @@ export class RecommendationsComponent implements OnInit, AfterViewInit, OnDestro
     private itemsService: ItemsService,
     private translate: TranslateService,
     private toastService: ToastService,
+    private modalService: ModalService,
     public tourService: TourService
   ) {}
 
@@ -244,21 +224,6 @@ export class RecommendationsComponent implements OnInit, AfterViewInit, OnDestro
     });
   }
 
-  loadSingleItem(id: string): void {
-    const item = this.itemsList.find(i => i.id === id);
-    if (item) {
-      this.id = item.id;
-      this.name = item.name;
-      this.comment = item.comment || '';
-      this.price = item.price;
-      this.amount = item.amount;
-      this.rating = item.rating;
-      this.tags = [...item.tags];
-      this.selectedUsers = [...item.users];
-      this.canEditCurrentItem = item.canEdit || false;
-    }
-  }
-
   goToNextPage(): void {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
@@ -350,68 +315,53 @@ export class RecommendationsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   openModal(type: 'add' | 'edit' | 'delete', id: string = ''): void {
-    this.currentModalContent = type;
-    this.modalTitle = this.translate.instant(`ITEMS.MODAL.${type.toUpperCase()}_TITLE`);
-
-    const modalElement = document.getElementById('recommendationsModal');
-    if (!modalElement) return;
-
     if (type === 'add') {
-      this.clearFormData();
-    } else if (id) {
-      this.loadSingleItem(id);
-    }
+      this.modalService.open(
+        RecommendationAddFormComponent,
+        this.translate.instant('ITEMS.MODAL.ADD_TITLE'),
+        { onSuccess: () => this.loadItems() },
+        'lg'
+      );
+    } else if (type === 'edit' && id) {
+      const item = this.itemsList.find(i => i.id === id);
+      if (!item) return;
 
-    if (!this.modalInstance) {
-      this.modalInstance = new bootstrap.Modal(modalElement, {
-        backdrop: 'static',
-        keyboard: false
-      });
-    }
+      this.modalService.open(
+        RecommendationEditFormComponent,
+        this.translate.instant('ITEMS.MODAL.EDIT_TITLE'),
+        {
+          id: item.id,
+          name: item.name,
+          comment: item.comment || '',
+          price: item.price,
+          amount: item.amount,
+          rating: item.rating,
+          tags: [...item.tags],
+          canEdit: item.canEdit || false,
+          onSuccess: () => this.loadItems()
+        },
+        'lg'
+      );
+    } else if (type === 'delete' && id) {
+      const item = this.itemsList.find(i => i.id === id);
+      if (!item) return;
 
-    this.formErrors = {};
-    this.formValidated = false;
-    this.modalInstance.show();
-  }
-
-  hideModal(): void {
-    if (this.modalInstance) {
-      this.modalInstance.hide();
-      this.clearFormData();
-    }
-  }
-
-  private clearFormData(): void {
-    this.id = '';
-    this.name = '';
-    this.comment = '';
-    this.price = 0;
-    this.amount = 1;
-    this.rating = 0;
-    this.hoverRating = 0;
-    this.tags = [];
-    this.tagInput = '';
-    this.selectedUsers = [];
-    this.formErrors = {};
-    this.formValidated = false;
-  }
-
-  setRating(rating: number): void {
-    this.rating = rating;
-  }
-
-  addTag(): void {
-    const tag = this.tagInput.trim().replace(/\s+/g, '_').toLowerCase();
-    if (tag && !this.tags.includes(tag)) {
-      this.tags.push(tag);
-      this.tagInput = '';
-    }
-  }
-
-  removeTag(tag: string): void {
-    const index = this.tags.indexOf(tag);
-    if (index > -1) {
-      this.tags.splice(index, 1);
+      this.modalService.open(
+        RecommendationDeleteFormComponent,
+        this.translate.instant('ITEMS.MODAL.DELETE_TITLE'),
+        {
+          id: item.id,
+          name: item.name,
+          comment: item.comment || '',
+          price: item.price,
+          amount: item.amount,
+          rating: item.rating,
+          tags: [...item.tags],
+          canDelete: item.canEdit || false,
+          onSuccess: () => this.loadItems()
+        },
+        'md'
+      );
     }
   }
 
@@ -458,147 +408,6 @@ export class RecommendationsComponent implements OnInit, AfterViewInit, OnDestro
     // Tags are now sent as a separate array parameter, so just reload items
     this.currentPage = 1;
     this.loadItems();
-  }
-
-  onUserSelectionChange(user: string, event: any): void {
-    if (event.target.checked) {
-      if (!this.selectedUsers.includes(user)) {
-        this.selectedUsers.push(user);
-      }
-    } else {
-      const index = this.selectedUsers.indexOf(user);
-      if (index > -1) {
-        this.selectedUsers.splice(index, 1);
-      }
-    }
-  }
-
-  isAllUsersSelected(): boolean {
-    return this.users.length > 0 && this.selectedUsers.length === this.users.length;
-  }
-
-  toggleAllUsers(event: any): void {
-    if (event.target.checked) {
-      this.selectedUsers = [...this.users];
-    } else {
-      this.selectedUsers = [];
-    }
-  }
-
-  validateItemForm(): boolean {
-    this.formErrors = {};
-    this.formValidated = true;
-
-    if (!this.name.trim()) {
-      this.formErrors['name'] = this.translate.instant('ITEMS.VALIDATION.NAME_REQUIRED');
-    }
-    if (this.price <= 0) {
-      this.formErrors['price'] = this.translate.instant('ITEMS.VALIDATION.PRICE_INVALID');
-    }
-    if (this.amount <= 0) {
-      this.formErrors['amount'] = this.translate.instant('ITEMS.VALIDATION.AMOUNT_INVALID');
-    }
-    if (this.rating <= 0) {
-      this.formErrors['rating'] = this.translate.instant('ITEMS.VALIDATION.RATING_REQUIRED');
-    }
-
-    return Object.keys(this.formErrors).length === 0;
-  }
-
-  createItem(): void {
-    if (!this.validateItemForm()) return;
-    this.formValidated = true;
-
-    const newItem = {
-      name: this.name,
-      comment: this.comment,
-      price: this.price,
-      amount: this.amount,
-      rating: this.rating,
-      tags: this.tags
-    };
-
-    this.itemsService.createRecommendationItem(newItem).subscribe({
-      next: () => {
-        this.hideModal();
-        // Reload items to get fresh data from server
-        this.loadItems();
-        this.toastService.success(
-          this.translate.instant('ITEMS.TOAST.SUCCESS'),
-          this.translate.instant('ITEMS.TOAST.CREATE_SUCCESS')
-        );
-      },
-      error: error => {
-        this.formErrors = parseValidationErrors(error);
-        this.formValidated = true;
-        if (Object.keys(this.formErrors).length === 0 || this.formErrors['general']) {
-          const errorMessage = this.formErrors['general'] || error?.error?.message || error?.message || this.translate.instant('ITEMS.TOAST.CREATE_ERROR');
-          this.toastService.error(
-            this.translate.instant('ITEMS.TOAST.ERROR'),
-            errorMessage
-          );
-        }
-      }
-    });
-  }
-
-  editItem(): void {
-    if (!this.validateItemForm()) return;
-    this.formValidated = true;
-
-    const updatedItem = {
-      id: this.id,
-      name: this.name,
-      comment: this.comment,
-      price: this.price,
-      amount: this.amount,
-      rating: this.rating,
-      tags: this.tags
-    };
-
-    this.itemsService.editRecommendationItem(updatedItem).subscribe({
-      next: () => {
-        this.hideModal();
-        // Reload items to get fresh data from server
-        this.loadItems();
-        this.toastService.success(
-          this.translate.instant('ITEMS.TOAST.SUCCESS'),
-          this.translate.instant('ITEMS.TOAST.EDIT_SUCCESS')
-        );
-      },
-      error: error => {
-        this.formErrors = parseValidationErrors(error);
-        this.formValidated = true;
-        if (Object.keys(this.formErrors).length === 0 || this.formErrors['general']) {
-          const errorMessage = this.formErrors['general'] || error?.error?.message || error?.message || this.translate.instant('ITEMS.TOAST.EDIT_ERROR');
-          this.toastService.error(
-            this.translate.instant('ITEMS.TOAST.ERROR'),
-            errorMessage
-          );
-        }
-      }
-    });
-  }
-
-  deleteItem(): void {
-    this.itemsService.deleteRecommendationItem(this.id).subscribe({
-      next: () => {
-        this.hideModal();
-        // Reload items to get fresh data from server
-        this.loadItems();
-        this.toastService.success(
-          this.translate.instant('ITEMS.TOAST.SUCCESS'),
-          this.translate.instant('ITEMS.TOAST.DELETE_SUCCESS')
-        );
-      },
-      error: error => {
-        const errorMessage = error?.error?.message || error?.message || this.translate.instant('ITEMS.TOAST.DELETE_ERROR');
-        this.toastService.error(
-          this.translate.instant('ITEMS.TOAST.ERROR'),
-          errorMessage
-        );
-      }
-    });
   }
 
   translateBackendError(errorMessage: string): string {

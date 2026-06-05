@@ -1,0 +1,43 @@
+<form>
+    <div class="form-group mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <label class="control-label mb-0">
+                <i class="bi bi-cart me-1"></i>{{ 'CHECKS.MODAL.LOCATION_LABEL' | translate }}<span class="text-danger">*</span>
+            </label>
+            <small class="text-white" style="font-size: 0.75rem;">{{ location.length }}/25</small>
+        </div>
+        <input [(ngModel)]="location" name="location" class="form-control"
+            [class.is-invalid]="formErrors['location']"
+            [class.is-valid]="formValidated && !formErrors['location'] && location.trim()"
+            maxlength="25" required />
+        <div class="invalid-feedback" *ngIf="formErrors['location']">{{ formErrors['location'] }}</div>
+    </div>
+
+    <div class="form-group mb-3">
+        <i class="bi bi-wallet2 mx-1"></i>
+        <label class="control-label">{{ 'CHECKS.MODAL.PAYER_LABEL' | translate }}<span class="text-danger">*</span></label>
+        <div class="dropdown w-100">
+            <button class="btn form-control text-start d-flex justify-content-between align-items-center bg-white bg-md-transparent text-dark text-md-white"
+                    [class.is-invalid]="formErrors['payer']"
+                    [class.is-valid]="formValidated && !formErrors['payer'] && payer"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                <span>{{ payer || ('CHECKS.MODAL.SELECT_PAYER' | translate) }}</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <ul class="dropdown-menu w-100">
+                <li *ngFor="let participant of participants">
+                    <a class="dropdown-item" href="javascript:void(0)" (click)="payer = participant">
+                        {{ participant }}
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="invalid-feedback d-block" *ngIf="formErrors['payer']">{{ formErrors['payer'] }}</div>
+    </div>
+
+    <button type="button" class="btn btn-warning" (click)="submit()">
+        <i class="bi bi-pencil me-1"></i>{{ 'CHECKS.MODAL.EDIT_BUTTON' | translate }}
+    </button>
+</form>

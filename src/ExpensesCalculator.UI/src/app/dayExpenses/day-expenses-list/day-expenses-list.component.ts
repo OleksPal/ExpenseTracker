@@ -1,29 +1,29 @@
 import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ExpensesService, DayExpenses } from '../../services/expenses.service';
-import { ToastService } from '../../services/toast.service';
 import { DateRangeService } from '../../services/date-range.service';
 import { TooltipService } from '../../services/tooltip.service';
-import { FormValidationService } from '../../services/form-validation.service';
-import { ModalWindowComponent } from "../../shared/modal-window/modal-window.component";
+import { ModalService } from '../../services/modal.service';
 import { FilterBarComponent, FilterOption } from '../../shared/filter-bar/filter-bar.component';
 import { SortBarComponent, SortOption } from '../../shared/sort-bar/sort-bar.component';
-import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RouterLink } from "@angular/router";
 import { DatePipe } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { ValidationErrors, parseValidationErrors } from '../../shared/models/validation-errors.model';
 import { TourService, TourAnchorNgBootstrapDirective, TourStepTemplateComponent } from 'ngx-ui-tour-ng-bootstrap';
+import { DayExpensesAddFormComponent } from '../../modals/day-expenses-form/day-expenses-add-form.component';
+import { DayExpensesEditFormComponent } from '../../modals/day-expenses-form/day-expenses-edit-form.component';
+import { DayExpensesDeleteFormComponent } from '../../modals/day-expenses-form/day-expenses-delete-form.component';
+import { DayExpensesShareFormComponent } from '../../modals/day-expenses-form/day-expenses-share-form.component';
 
 declare var bootstrap: any;
 
 @Component({
   selector: 'app-day-expenses-list',
   standalone: true,
-  imports: [RouterLink, FormsModule, CommonModule, ModalWindowComponent, FilterBarComponent, SortBarComponent, TranslatePipe, TourAnchorNgBootstrapDirective, TourStepTemplateComponent],
+  imports: [RouterLink, CommonModule, FilterBarComponent, SortBarComponent, TranslatePipe, TourAnchorNgBootstrapDirective, TourStepTemplateComponent],
   providers: [DatePipe],
   templateUrl: './day-expenses-list.component.html',
   styleUrl: './day-expenses-list.component.css'
@@ -31,7 +31,6 @@ declare var bootstrap: any;
 export class DayExpensesListComponent implements OnInit, AfterViewInit, OnDestroy {
   private flatpickrInitialized = false;
   private flatpickrInstance: any;
-  private modalFlatpickrInstance: any;
   private settingDatesFromApiWrapper = { value: false };
   private langChangeSub!: Subscription;
   private filterTextSubject = new Subject<string>();
@@ -45,7 +44,6 @@ export class DayExpensesListComponent implements OnInit, AfterViewInit, OnDestro
 
   ngOnDestroy(): void {
     this.dateRangeService.destroy(this.flatpickrInstance);
-    this.destroyModalFlatpickr();
     if (this.langChangeSub) {
       this.langChangeSub.unsubscribe();
     }
@@ -91,26 +89,6 @@ export class DayExpensesListComponent implements OnInit, AfterViewInit, OnDestro
       toDate,
       this.settingDatesFromApiWrapper
     );
-  }
-
-  initModalFlatpickr(readonly: boolean = false) {
-    this.destroyModalFlatpickr();
-
-    this.modalFlatpickrInstance = this.dateRangeService.initializeSingleDatePicker(
-      'modalDateInput',
-      {
-        defaultDate: this.date || undefined,
-        readonly: readonly,
-        onChange: (dates: Date[]) => {
-          this.date = this.dateRangeService.formatDate(dates[0]);
-        }
-      }
-    );
-  }
-
-  destroyModalFlatpickr() {
-    this.dateRangeService.destroy(this.modalFlatpickrInstance);
-    this.modalFlatpickrInstance = null;
   }
 
   clearDateRange(): void {
@@ -163,22 +141,6 @@ export class DayExpensesListComponent implements OnInit, AfterViewInit, OnDestro
   currentPage: number = 1;
   pageSize: number = 10;
 
-  // Expenses data
-  id = '';
-  date = '';
-  location = '';
-  participants = '';
-  totalSum = 0;
-
-  // Add new user with access
-  newUserWithAccess = '';
-  shareIsSuccess = false;
-  shareError = '';
-
-  // Form validation errors
-  formErrors: ValidationErrors = {};
-  formValidated = false;
-
   // Searching
   filterText = '';
 
@@ -197,10 +159,9 @@ export class DayExpensesListComponent implements OnInit, AfterViewInit, OnDestro
     private router: Router,
     private datePipe: DatePipe,
     private translate: TranslateService,
-    private toastService: ToastService,
     private dateRangeService: DateRangeService,
     private tooltipService: TooltipService,
-    private formValidationService: FormValidationService,
+    private modalService: ModalService,
     public tourService: TourService
   ) {}
 
@@ -219,10 +180,6 @@ export class DayExpensesListComponent implements OnInit, AfterViewInit, OnDestro
         if (this.fromDate && this.toDate) {
           this.setFlatpickrDates(this.fromDate, this.toDate);
         }
-      }
-
-      if (this.modalFlatpickrInstance) {
-        this.dateRangeService.updateLocale(this.modalFlatpickrInstance, event.lang, false);
       }
 
       // Re-initialize tour with new language
@@ -282,11 +239,7 @@ export class DayExpensesListComponent implements OnInit, AfterViewInit, OnDestro
     })
   }
 
-  modalInstance: any;
-  currentModalContent: 'add' | 'edit' | 'delete' | 'share' = 'add';
-  modalTitle: string = '';
-
-  openModal(type: 'add' | 'edit' | 'delete' | 'share', id: string) {
+  openModal(type: 'add' | 'edit' | 'delete' | 'share', id: string = '') {
     // End tour if it's running
     if (this.tourService.getStatus() !== 0) {
       this.tourService.end();
@@ -294,61 +247,82 @@ export class DayExpensesListComponent implements OnInit, AfterViewInit, OnDestro
       setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
     }
 
-    this.currentModalContent = type;
-    this.modalTitle = this.translate.instant(`EXPENSES.MODAL.${type.toUpperCase()}_TITLE`);
-
-    const modalElement = document.getElementById('staticBackdrop');
-    if (!modalElement) return;
-
-    // Clear form fields for 'add' modal, populate from list for others
     if (type === 'add') {
-      this.clearFormData();
-    } else if (id !== undefined) {
-      const expense = this.expensesList.find(e => e.id === id);
-      if (expense) {
-        this.id = expense.id;
-        this.date = (new Date(expense.date)).toISOString().substring(0, 10);
-        this.location = expense.location;
-        this.participants = expense.participants.join(', ');
-        this.totalSum = expense.totalSum;
-      }
+      this.modalService.open(
+        DayExpensesAddFormComponent,
+        this.translate.instant('EXPENSES.MODAL.ADD_TITLE'),
+        {
+          currentLocale: this.currentLocale,
+          onSuccess: () => { /* No callback needed as navigation happens in component */ }
+        },
+        'md'
+      );
+      return;
     }
 
-    if (!this.modalInstance) {
-      this.modalInstance = new bootstrap.Modal(modalElement, {
-        backdrop: 'static',
-        keyboard: false
-      });
+    const expense = this.expensesList.find(e => e.id === id);
+    if (!expense) return;
+
+    if (type === 'edit') {
+      this.modalService.open(
+        DayExpensesEditFormComponent,
+        this.translate.instant('EXPENSES.MODAL.EDIT_TITLE'),
+        {
+          currentLocale: this.currentLocale,
+          id: expense.id,
+          date: (new Date(expense.date)).toISOString().substring(0, 10),
+          location: expense.location,
+          participants: expense.participants.join(', '),
+          totalSum: expense.totalSum,
+          onSuccess: () => this.refreshExpenses()
+        },
+        'md'
+      );
+      return;
     }
 
-    this.formErrors = {};
-    this.shareError = '';
-    this.formValidated = false;
+    if (type === 'delete') {
+      this.modalService.open(
+        DayExpensesDeleteFormComponent,
+        this.translate.instant('EXPENSES.MODAL.DELETE_TITLE'),
+        {
+          currentLocale: this.currentLocale,
+          id: expense.id,
+          date: (new Date(expense.date)).toISOString().substring(0, 10),
+          location: expense.location,
+          participants: expense.participants.join(', '),
+          totalSum: expense.totalSum,
+          onSuccess: () => this.refreshExpenses()
+        },
+        'md'
+      );
+      return;
+    }
 
-    this.modalInstance.show();
-
-    const readonly = type === 'delete' || type === 'share';
-    setTimeout(() => this.initModalFlatpickr(readonly), 0);
+    if (type === 'share') {
+      this.modalService.open(
+        DayExpensesShareFormComponent,
+        this.translate.instant('EXPENSES.MODAL.SHARE_TITLE'),
+        {
+          currentLocale: this.currentLocale,
+          id: expense.id,
+          date: (new Date(expense.date)).toISOString().substring(0, 10),
+          location: expense.location,
+          participants: expense.participants.join(', '),
+          totalSum: expense.totalSum,
+          onSuccess: () => this.refreshExpenses()
+        },
+        'md'
+      );
+      return;
+    }
   }
 
-  private clearFormData(): void {
-    this.date = '';
-    this.location = '';
-    this.participants = '';
-    this.totalSum = 0;
-    this.newUserWithAccess = '';
-    this.formErrors = {};
-    this.formValidated = false;
-    this.shareError = '';
+  refreshExpenses(): void {
+    this.loadExpenses();
+    this.tooltipService.destroy();
+    setTimeout(() => this.tooltipService.initialize(), 100);
   }
-
-  hideModal() {
-    if (this.modalInstance) {
-      this.destroyModalFlatpickr();
-      this.modalInstance.hide();
-      this.clearFormData();
-    }
-  }  
 
   // Filtering
   filterCriteria: string = 'Location';
@@ -481,166 +455,6 @@ export class DayExpensesListComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   // Data modification
-  private setDateInputValidation(state: 'valid' | 'invalid' | 'none') {
-    const altInput = this.modalFlatpickrInstance?.altInput;
-    if (!altInput) return;
-
-    altInput.classList.toggle('is-valid', state === 'valid');
-    altInput.classList.toggle('is-invalid', state === 'invalid');
-  }
-
-  private validateDayExpensesForm(): boolean {
-    this.formErrors = this.formValidationService.validateDayExpensesForm(this.date, this.participants);
-    this.formValidated = true;
-
-    // Update date input validation styling
-    if (!this.date) {
-      this.setDateInputValidation('invalid');
-    } else {
-      this.setDateInputValidation('valid');
-    }
-
-    return !this.formValidationService.hasErrors(this.formErrors);
-  }
-
-  createDayExpenses() {
-    if (!this.validateDayExpensesForm()) return;
-    this.formValidated = true;
-
-    let participantsList = this.participants.split(',').map(p => p.trim())
-
-    this.expensesService.createDayExpenses(this.date, this.location, participantsList).subscribe({
-      next: (createdDay) => {
-        this.hideModal();
-        this.toastService.success(
-          this.translate.instant('EXPENSES.TOAST.SUCCESS'),
-          this.translate.instant('EXPENSES.TOAST.CREATE_SUCCESS'));
-        this.router.navigate(['day-expenses-details', createdDay.id]);
-      },
-      error: error => {
-        this.formErrors = parseValidationErrors(error);
-        this.formValidated = true;
-        if (Object.keys(this.formErrors).length === 0 || this.formErrors['general']) {
-          const errorMessage = this.formErrors['general'] || error?.error?.message || error?.message || this.translate.instant('EXPENSES.TOAST.CREATE_ERROR');
-          this.toastService.error(
-            this.translate.instant('EXPENSES.TOAST.ERROR'),
-            this.translateBackendError(errorMessage));
-        }
-      }
-    })
-  }
-
-  editDayExpenses() {
-    if (!this.validateDayExpensesForm()) return;
-    this.formValidated = true;
-
-    let participantsList = this.participants.split(',').map(p => p.trim())
-
-    this.expensesService.editDayExpenses(this.id, this.date, this.location, participantsList).subscribe({
-      next: (updatedDay) => {
-        // Update the item in the local list
-        const index = this.expensesList.findIndex(e => e.id === this.id);
-        if (index !== -1) {
-          this.expensesList[index] = updatedDay;
-        }
-
-        this.hideModal();
-        this.toastService.success(
-          this.translate.instant('EXPENSES.TOAST.SUCCESS'),
-          this.translate.instant('EXPENSES.TOAST.EDIT_SUCCESS'));
-
-        // Re-initialize tooltips after data updates
-        setTimeout(() => this.tooltipService.initialize(), 0);
-      },
-      error: error => {
-        this.formErrors = parseValidationErrors(error);
-        this.formValidated = true;
-        if (Object.keys(this.formErrors).length === 0 || this.formErrors['general']) {
-          const errorMessage = this.formErrors['general'] || error?.error?.message || error?.message || this.translate.instant('EXPENSES.TOAST.EDIT_ERROR');
-          this.toastService.error(
-            this.translate.instant('EXPENSES.TOAST.ERROR'),
-            this.translateBackendError(errorMessage));
-        }
-      }
-    })
-  }
-
-  deleteDayExpenses() {
-    this.expensesService.deleteDayExpenses(this.id).subscribe({
-      next: () => {
-        // Remove the item from the local list
-        const index = this.expensesList.findIndex(e => e.id === this.id);
-        if (index !== -1) {
-          this.expensesList.splice(index, 1);
-        }
-
-        // If the current page is now empty and we're not on page 1, go to previous page
-        if (this.expensesList.length === 0 && this.currentPage > 1) {
-          this.currentPage--;
-          this.loadExpenses();
-        } else if (this.expensesList.length === 0) {
-          // If we're on page 1 and it's empty, clear filters to show "no data" view
-          this.filterText = '';
-          this.fromDate = '';
-          this.toDate = '';
-          this.currentPage = 1;
-          this.totalPages = 0;
-        }
-
-        this.hideModal();
-        this.toastService.success(
-          this.translate.instant('EXPENSES.TOAST.SUCCESS'),
-          this.translate.instant('EXPENSES.TOAST.DELETE_SUCCESS'));
-      },
-      error: error =>
-        {
-          console.log(error);
-          const errorMessage = error?.error?.message || error?.message || this.translate.instant('EXPENSES.TOAST.DELETE_ERROR');
-          this.toastService.error(
-            this.translate.instant('EXPENSES.TOAST.ERROR'),
-            this.translateBackendError(errorMessage));
-        }
-    })
-  }
-
-  shareDayExpenses() {
-    this.formErrors = this.formValidationService.validateShareForm(this.newUserWithAccess);
-    this.shareError = '';
-    this.formValidated = true;
-
-    if (this.formValidationService.hasErrors(this.formErrors)) {
-      return;
-    }
-
-    this.expensesService.shareDayExpenses(this.id, this.newUserWithAccess).subscribe({
-      next: (data) => {
-        if (data.isSuccess) {
-          this.hideModal();
-          this.loadExpenses();
-          this.shareIsSuccess = false;
-          this.toastService.success(
-            this.translate.instant('EXPENSES.TOAST.SUCCESS'),
-            this.translate.instant('EXPENSES.TOAST.SHARE_SUCCESS'));
-        }
-        else {
-          this.shareIsSuccess = data.isSuccess;
-          this.shareError = this.translateBackendError(data.error);
-          this.formErrors['newUserWithAccess'] = this.shareError;
-        }
-      },
-      error: error => {
-        this.formErrors = parseValidationErrors(error);
-        this.formValidated = true;
-        if (Object.keys(this.formErrors).length === 0 || this.formErrors['general']) {
-          const errorMessage = this.formErrors['general'] || error?.error?.message || error?.message || this.translate.instant('EXPENSES.BACKEND_ERRORS.UNKNOWN_ERROR');
-          this.toastService.error(
-            this.translate.instant('EXPENSES.TOAST.ERROR'),
-            this.translateBackendError(errorMessage));
-        }
-      }
-    })
-  }
-
   openDetails(id: string) {
     // Hide all tooltips before navigating
     const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');

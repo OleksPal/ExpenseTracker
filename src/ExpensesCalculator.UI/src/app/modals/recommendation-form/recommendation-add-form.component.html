@@ -1,0 +1,87 @@
+<form>
+    <div class="alert alert-info p-2 mb-3" style="font-size: 0.9rem;">
+        <i class="bi bi-info-circle me-2"></i>{{ 'ITEMS.MODAL.RECOMMENDATIONS_INFO' | translate }}
+    </div>
+    <div class="form-group mb-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <label class="control-label mb-0"><i class="bi bi-box-seam me-1"></i>{{ 'ITEMS.MODAL.NAME' | translate }}<span class="text-danger">*</span></label>
+            <small class="text-white" style="font-size: 0.75rem;">{{ name.length }}/20</small>
+        </div>
+        <input [(ngModel)]="name" name="name" class="form-control" [class.is-invalid]="formErrors['name']"
+            [class.is-valid]="formValidated && !formErrors['name'] && name.trim()" maxlength="20" required />
+        <div class="invalid-feedback" *ngIf="formErrors['name']">{{ formErrors['name'] }}</div>
+    </div>
+    <div class="form-group mb-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <label class="control-label mb-0"><i class="bi bi-chat-text me-1"></i>{{ 'ITEMS.MODAL.COMMENT' | translate }}</label>
+            <small class="text-white" style="font-size: 0.75rem;">{{ comment.length }}/120</small>
+        </div>
+        <textarea [(ngModel)]="comment" name="comment" class="form-control" rows="3" maxlength="120"
+            style="resize: none;"></textarea>
+    </div>
+    <div class="row mb-2">
+        <div class="col-6 col-md-3">
+            <div class="form-group">
+                <i class="bi bi-currency-dollar mx-1"></i>
+                <label class="control-label">{{ 'ITEMS.MODAL.PRICE' | translate }}<span class="text-danger">*</span></label>
+                <input type="number" [(ngModel)]="price" name="price" class="form-control" step="0.01" min="0" max="10000"
+                    [class.is-invalid]="formErrors['price']"
+                    [class.is-valid]="formValidated && !formErrors['price'] && price && price > 0" required />
+                <div class="invalid-feedback" *ngIf="formErrors['price']">{{ formErrors['price'] }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="form-group">
+                <i class="bi bi-grid-fill mx-1"></i>
+                <label class="control-label">{{ 'ITEMS.MODAL.AMOUNT' | translate }}<span class="text-danger">*</span></label>
+                <input type="number" [(ngModel)]="amount" name="amount" class="form-control" min="1" max="1000"
+                    [class.is-invalid]="formErrors['amount']"
+                    [class.is-valid]="formValidated && !formErrors['amount'] && amount > 0" required />
+                <div class="invalid-feedback" *ngIf="formErrors['amount']">{{ formErrors['amount'] }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="form-group">
+                <i class="bi bi-star-fill mx-1"></i>
+                <label class="control-label mb-0">{{ 'ITEMS.MODAL.RATING' | translate }}<span class="text-danger">*</span></label>
+                <div class="d-flex align-items-center" style="padding-top: 0.3rem;">
+                    <div class="star-rating d-flex justify-content-between" style="flex: 1; margin-right: 0.5rem;">
+                        <i *ngFor="let star of [1,2,3,4,5,6,7,8,9,10]"
+                            [class]="star <= (hoverRating || rating) ? 'bi bi-star-fill' : 'bi bi-star'"
+                            (mouseenter)="setHoverRating(star)" (mouseleave)="setHoverRating(0)"
+                            (click)="setRating(star)"
+                            style="cursor: pointer; font-size: 1.2rem; color: #ffc107;"></i>
+                    </div>
+                    <span class="text-white text-nowrap" style="min-width: 50px; text-align: right; display: inline-block;">{{ (hoverRating || rating) }}/10</span>
+                </div>
+                <div class="invalid-feedback d-block" *ngIf="formErrors['rating']">{{ formErrors['rating'] }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="form-group mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <label class="control-label fw-normal mb-0"><i class="bi bi-tags me-1"></i>{{ 'ITEMS.MODAL.TAGS' | translate }}</label>
+            <small class="text-white" style="font-size: 0.75rem;">{{ tags.length }}/5</small>
+        </div>
+        <div class="input-group border-secondary mb-2">
+            <input [(ngModel)]="tagInput" name="tagInput" class="form-control"
+                [placeholder]="'ITEMS.MODAL.TAG_PLACEHOLDER' | translate" [disabled]="tags.length >= 5"
+                maxlength="15" (keydown.enter)="addTag(); $event.preventDefault()" />
+            <button type="button" class="btn bg-white text-dark border border-dark" (click)="addTag()"
+                [disabled]="tags.length >= 5">
+                <i class="bi bi-plus"></i>
+            </button>
+        </div>
+        <div class="mt-1" style="max-height: 75px; overflow-x: auto; overflow-y: hidden; white-space: nowrap;"
+            *ngIf="tags.length > 0">
+            <span *ngFor="let tag of tags" class="badge border border-light text-white fw-normal me-2 mb-1"
+                style="font-size: 0.85rem; display: inline-block;">
+                #{{ tag }}
+                <i class="bi bi-x ms-1" style="cursor: pointer;" (click)="removeTag(tag)"></i>
+            </span>
+        </div>
+    </div>
+    <button type="button" class="btn btn-success" (click)="submit()">
+        <i class="bi bi-plus-circle me-1"></i>{{ 'ITEMS.MODAL.ADD' | translate }}
+    </button>
+</form>

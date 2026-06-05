@@ -154,9 +154,9 @@
       "PAYER_LABEL": "Payer",
       "SELECT_PAYER": "Select Payer",
       "SUM_LABEL": "Total Sum",
-      "ADD_BUTTON": "Add Check",
-      "EDIT_BUTTON": "Edit Check",
-      "DELETE_BUTTON": "Delete Check"
+      "ADD_BUTTON": "Add",
+      "EDIT_BUTTON": "Edit",
+      "DELETE_BUTTON": "Delete"
     },
     "TOAST": {
       "SUCCESS": "Success!",

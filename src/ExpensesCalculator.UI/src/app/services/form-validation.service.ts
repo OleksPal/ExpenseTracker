@@ -58,13 +58,13 @@ export class FormValidationService {
   /**
    * Validate item form
    */
-  validateItemForm(name: string, price: number, amount: number, rating: number, selectedUsers: string[]): ValidationErrors {
+  validateItemForm(name: string, price: number | null, amount: number, rating: number, selectedUsers: string[]): ValidationErrors {
     const errors: ValidationErrors = {};
 
     if (!name.trim()) {
       errors['name'] = this.translate.instant('ITEMS.VALIDATION.NAME_REQUIRED');
     }
-    if (price <= 0) {
+    if (!price || price <= 0) {
       errors['price'] = this.translate.instant('ITEMS.VALIDATION.PRICE_INVALID');
     }
     if (amount <= 0) {
