@@ -69,7 +69,7 @@
                                 <li *ngFor="let itemCalc of checkCalc.items" class="mb-1">
                                     <i class="bi bi-box me-1"></i>
                                     <span>{{ itemCalc.item.name }}:</span>
-                                    <span class="ms-1">{{ itemCalc.item.price * itemCalc.item.amount | currency:'UAH':'₴' }}</span>
+                                    <span class="ms-1">{{ itemCalc.item.price * itemCalc.item.amount | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate) }}</span>
                                     <span class="mx-1">/</span>
                                     <span class="text-muted text-white"
                                         style="cursor: pointer; color: white !important;" data-bs-toggle="tooltip"
@@ -78,7 +78,7 @@
                                         <i class="bi bi-people-fill me-1"></i>{{ itemCalc.item.users.length }}
                                     </span>
                                     <span class="me-1">=</span>
-                                    <span class="text-warning fw-bold">{{ itemCalc.pricePerUser | currency:'UAH':'₴' }}</span>
+                                    <span class="text-warning fw-bold">{{ itemCalc.pricePerUser | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate) }}</span>
                                 </li>
                             </ul>
 
@@ -86,7 +86,7 @@
                             <div>
                                 <i class="bi bi-coin me-1"></i>
                                 <span>{{ 'CALCULATIONS.SUM_PER_PARTICIPANT' | translate }}:</span>
-                                <span class="text-warning fw-bold ms-1">{{ checkCalc.sumPerParticipant | currency:'UAH':'₴' }}</span>
+                                <span class="text-warning fw-bold ms-1">{{ checkCalc.sumPerParticipant | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate) }}</span>
                             </div>
 
                             <hr class="my-3" style="border-color: #6c757d; opacity: 1;" />
@@ -97,7 +97,7 @@
                     <div>
                         <i class="bi bi-wallet2 me-1"></i>
                         <span>{{ 'CALCULATIONS.TOTAL_EXPENSES' | translate }}:</span>
-                        <span class="text-warning fw-bold ms-1">{{ getTotalForUser(participant) | currency:'UAH':'₴' }}</span>
+                        <span class="text-warning fw-bold ms-1">{{ getTotalForUser(participant) | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate) }}</span>
                     </div>
 
                 </ng-container>
@@ -115,7 +115,7 @@
                     <ul class="list-unstyled ms-1 ms-md-3 mb-0">
                         <li *ngFor="let transaction of calculationsData.optimizedUserTransactions" class="mb-1">
                             <i class="bi bi-person-fill me-1"></i>{{ transaction.subjects.sender }}
-                            <span class="text-warning fw-bold mx-1">({{ transaction.transferAmount | currency:'UAH':'₴'
+                            <span class="text-warning fw-bold mx-1">({{ transaction.transferAmount | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate)
                                 }})</span>
                             <span class="mx-1">→</span>
                             <i class="bi bi-person-fill me-1"></i>{{ transaction.subjects.recipient }}
@@ -144,7 +144,7 @@
                             <li *ngFor="let transaction of calculationsData.allUsersTransactions" class="mb-1">
                                 <i class="bi bi-cart me-1"></i>{{ transaction.checkName }}:
                                 <i class="bi bi-person-fill ms-2 me-1"></i>{{ transaction.subjects.sender }}
-                                <span class="text-warning fw-bold mx-1">({{ transaction.transferAmount | currency:'UAH':'₴' }})</span>
+                                <span class="text-warning fw-bold mx-1">({{ transaction.transferAmount | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate) }})</span>
                                 <span class="mx-1">→</span>
                                 <i class="bi bi-person-fill me-1"></i>{{ transaction.subjects.recipient }}
                             </li>

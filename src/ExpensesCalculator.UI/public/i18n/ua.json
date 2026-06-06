@@ -1,4 +1,8 @@
 {
+  "GENERAL": {
+    "CURRENCY_SYMBOL": "₴",
+    "CURRENCY_CODE": "UAH"
+  },
   "NAV": {
     "LOGIN": "Увійти",
     "REGISTER": "Зареєструватися",
