@@ -49,24 +49,23 @@
                 </div>
             </div>
 
-            <!-- Add Button for small screens -->
+            <!-- Add Item and Filter/Sort buttons for small screens -->
             <div *ngIf="itemsList.length > 0" class="d-block d-lg-none mb-2 px-0">
-                <button class="btn btn-outline-primary text-white w-100" (click)="openModal('add')"
-                    [disabled]="loading">
-                    <i class="bi bi-plus-circle me-1"></i>{{ 'ITEMS.ADD' | translate }}
-                </button>
-            </div>
-
-            <!-- Collapsible Filter/Sort controls for small screens -->
-            <div *ngIf="itemsList.length > 0" class="d-block d-lg-none mb-2 px-0">
-                <button class="btn btn-sm btn-outline-primary text-white w-100"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        [attr.data-bs-target]="'#filterSortCollapse-' + checkId"
-                        [attr.aria-expanded]="false"
-                        [attr.aria-controls]="'filterSortCollapse-' + checkId">
-                    <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }} & <i class="bi bi-sort-down me-1"></i>{{ 'ITEMS.SORT.CAPTION' | translate }}
-                </button>
+                <div class="d-flex w-100 add-filter-group">
+                    <button class="btn btn-outline-primary text-white add-btn"
+                            (click)="openModal('add')"
+                            [disabled]="loading">
+                        <i class="bi bi-plus-circle me-1"></i>{{ 'ITEMS.ADD' | translate }}
+                    </button>
+                    <button class="btn btn-outline-primary text-white filter-btn"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            [attr.data-bs-target]="'#filterSortCollapse-' + checkId"
+                            [attr.aria-expanded]="false"
+                            [attr.aria-controls]="'filterSortCollapse-' + checkId">
+                        <i class="bi bi-funnel"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}/{{ 'ITEMS.SORT.CAPTION' | translate }}
+                    </button>
+                </div>
                 <div class="collapse mt-2" [id]="'filterSortCollapse-' + checkId">
                     <div class="d-flex flex-column gap-2">
                         <div class="d-flex flex-column">

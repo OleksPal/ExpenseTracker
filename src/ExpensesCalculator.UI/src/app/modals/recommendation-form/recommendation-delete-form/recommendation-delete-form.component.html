@@ -10,24 +10,17 @@
         <textarea [value]="comment" class="form-control" rows="3" disabled></textarea>
     </div>
     <div class="row mb-3">
-        <div class="col-6 col-md-3">
+        <div class="col-12 col-md-6">
             <div class="form-group">
                 <i class="bi bi-currency-dollar mx-1"></i>
                 <label class="control-label">{{ 'ITEMS.MODAL.PRICE' | translate }}</label>
                 <input type="number" [value]="price" class="form-control" disabled />
             </div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="form-group">
-                <i class="bi bi-grid-fill mx-1"></i>
-                <label class="control-label">{{ 'ITEMS.MODAL.AMOUNT' | translate }}</label>
-                <input type="number" [value]="amount" class="form-control" disabled />
-            </div>
-        </div>
         <div class="col-12 col-md-6">
             <div class="form-group">
                 <i class="bi bi-star-fill mx-1"></i>
-                <label class="control-label mb-0">{{ 'ITEMS.MODAL.RATING' | translate }}</label>
+                <label class="control-label mt-1 mt-md-0 mb-0">{{ 'ITEMS.MODAL.RATING' | translate }}</label>
                 <div class="d-flex align-items-center" style="padding-top: 0.3rem;">
                     <div class="star-rating d-flex justify-content-between" style="flex: 1; margin-right: 0.5rem;">
                         <i *ngFor="let star of [1,2,3,4,5,6,7,8,9,10]"

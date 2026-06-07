@@ -64,10 +64,10 @@ export class FormValidationService {
     if (!name.trim()) {
       errors['name'] = this.translate.instant('ITEMS.VALIDATION.NAME_REQUIRED');
     }
-    if (!price || price <= 0) {
+    if (!price || price <= 0 || price > 10000) {
       errors['price'] = this.translate.instant('ITEMS.VALIDATION.PRICE_INVALID');
     }
-    if (amount <= 0) {
+    if (amount <= 0 || amount > 1000) {
       errors['amount'] = this.translate.instant('ITEMS.VALIDATION.AMOUNT_INVALID');
     }
     if (rating <= 0) {

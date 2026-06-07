@@ -6,9 +6,9 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ModalService } from '../../services/modal.service';
 import { FilterBarComponent, FilterOption } from '../../shared/filter-bar/filter-bar.component';
 import { SortBarComponent, SortOption } from '../../shared/sort-bar/sort-bar.component';
-import { RecommendationAddFormComponent } from '../../modals/recommendation-form/recommendation-add-form.component';
-import { RecommendationEditFormComponent } from '../../modals/recommendation-form/recommendation-edit-form.component';
-import { RecommendationDeleteFormComponent } from '../../modals/recommendation-form/recommendation-delete-form.component';
+import { RecommendationAddFormComponent } from '../../modals/recommendation-form/recommendation-add-form/recommendation-add-form.component';
+import { RecommendationEditFormComponent } from '../../modals/recommendation-form/recommendation-edit-form/recommendation-edit-form.component';
+import { RecommendationDeleteFormComponent } from '../../modals/recommendation-form/recommendation-delete-form/recommendation-delete-form.component';
 import { ItemsService, Item } from '../../services/items.service';
 import { ToastService } from '../../services/toast.service';
 import { Subject, Subscription } from 'rxjs';
@@ -360,7 +360,7 @@ export class RecommendationsComponent implements OnInit, AfterViewInit, OnDestro
           canDelete: item.canEdit || false,
           onSuccess: () => this.loadItems()
         },
-        'md'
+        'lg'
       );
     }
   }

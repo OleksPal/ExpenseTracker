@@ -241,7 +241,7 @@
                                 <!-- Desktop buttons (top-right) -->
                                 <!-- Edit and Delete buttons for editable items -->
                                 <div *ngIf="item.canEdit" class="d-none d-md-flex gap-1" (click)="$event.stopPropagation()">
-                                    <button class="btn btn-outline-warning text-white btn-action-edit" type="button"
+                                    <button class="btn btn-outline-primary text-white btn-action-edit" type="button"
                                         (click)="openModal('edit', item.id)"
                                         style="padding: 0; font-size: 0.85rem; width: 1.5rem; height: 1.5rem; line-height: 1; display: flex; align-items: center; justify-content: center;">
                                         <i class="bi bi-pencil"></i>
@@ -252,27 +252,19 @@
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
-                                <!-- Navigation button for other items -->
+                                <!-- Navigation button for other items - desktop only -->
                                 <a *ngIf="!item.canEdit && item.dayExpensesId && item.dayExpensesId !== '00000000-0000-0000-0000-000000000000'"
                                     [routerLink]="['/day-expenses-details', item.dayExpensesId]"
                                     [queryParams]="{ checkId: item.checkId, itemId: item.id }"
-                                    class="btn btn-outline-primary text-info"
+                                    class="btn btn-outline-primary text-info d-none d-md-flex"
                                     style="padding: 0; font-size: 0.85rem; width: 1.5rem; height: 1.5rem; line-height: 1; display: flex; align-items: center; justify-content: center;">
                                     <i class="bi bi-cloud-check"></i>
                                 </a>
                             </div>
 
-                            <div class="d-flex align-items-center justify-content-between my-2 flex-wrap"
-                                style="font-size: 0.8rem;">
+                            <div class="d-flex align-items-center justify-content-between my-2 mb-0 flex-wrap"
+                                style="font-size: 0.8rem; gap: 0.5rem;">
                                 <div>{{ item.price | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate) }}</div>
-                                <div>×</div>
-                                <div><i class="bi bi-grid-fill me-1"></i>{{ item.amount }}</div>
-                                <div>=</div>
-                                <div>{{ getTotalPrice(item) | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate) }}</div>
-                            </div>
-
-                            <div class="d-flex align-items-center justify-content-between mt-2 mb-0 flex-nowrap"
-                                style="font-size: 0.8rem;">
                                 <div *ngIf="item.users && item.users.length > 0" style="white-space: nowrap;">
                                     <label class="mb-0" data-bs-toggle="tooltip" data-bs-placement="top"
                                         data-bs-html="true" data-bs-custom-class="custom-tooltip"
@@ -303,7 +295,7 @@
 
                             <!-- Mobile buttons (below tags) - only for editable items -->
                             <div *ngIf="item.canEdit" class="d-flex d-md-none gap-2 mt-2" (click)="$event.stopPropagation()">
-                                <button class="btn btn-sm btn-outline-warning text-white flex-fill" type="button"
+                                <button class="btn btn-sm btn-outline-primary text-white flex-fill" type="button"
                                     (click)="openModal('edit', item.id)">
                                     <i class="bi bi-pencil me-1"></i>{{ 'ITEMS.MODAL.SAVE' | translate }}
                                 </button>
@@ -312,6 +304,15 @@
                                     <i class="bi bi-trash me-1"></i>{{ 'ITEMS.MODAL.DELETE' | translate }}
                                 </button>
                             </div>
+
+                            <!-- View in Expenses button (full width at bottom) - only on small screens -->
+                            <a *ngIf="!item.canEdit && item.dayExpensesId && item.dayExpensesId !== '00000000-0000-0000-0000-000000000000'"
+                                [routerLink]="['/day-expenses-details', item.dayExpensesId]"
+                                [queryParams]="{ checkId: item.checkId, itemId: item.id }"
+                                class="btn btn-sm btn-outline-primary text-info w-100 mt-2 d-block d-md-none"
+                                (click)="$event.stopPropagation()">
+                                <i class="bi bi-cloud-check me-1"></i>{{ 'ITEMS.VIEW_IN_EXPENSES' | translate }}
+                            </a>
                         </div>
                     </div>
                     <!-- Card with tour anchor (first item) -->
@@ -328,7 +329,7 @@
                                 <!-- Desktop buttons (top-right) -->
                                 <!-- Edit and Delete buttons for editable items -->
                                 <div *ngIf="item.canEdit" class="d-none d-md-flex gap-1" (click)="$event.stopPropagation()">
-                                    <button class="btn btn-outline-warning text-white btn-action-edit" type="button"
+                                    <button class="btn btn-outline-primary text-white btn-action-edit" type="button"
                                         (click)="openModal('edit', item.id)"
                                         style="padding: 0; font-size: 0.85rem; width: 1.5rem; height: 1.5rem; line-height: 1; display: flex; align-items: center; justify-content: center;">
                                         <i class="bi bi-pencil"></i>
@@ -339,27 +340,19 @@
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
-                                <!-- Navigation button for other items -->
+                                <!-- Navigation button for other items - desktop only -->
                                 <a *ngIf="!item.canEdit && item.dayExpensesId && item.dayExpensesId !== '00000000-0000-0000-0000-000000000000'"
                                     [routerLink]="['/day-expenses-details', item.dayExpensesId]"
                                     [queryParams]="{ checkId: item.checkId, itemId: item.id }"
-                                    class="btn btn-outline-primary text-info"
+                                    class="btn btn-outline-primary text-info d-none d-md-flex"
                                     style="padding: 0; font-size: 0.85rem; width: 1.5rem; height: 1.5rem; line-height: 1; display: flex; align-items: center; justify-content: center;">
                                     <i class="bi bi-cloud-check"></i>
                                 </a>
                             </div>
 
-                            <div class="d-flex align-items-center justify-content-between my-2 flex-wrap"
-                                style="font-size: 0.8rem;">
+                            <div class="d-flex align-items-center justify-content-between my-2 mb-0 flex-wrap"
+                                style="font-size: 0.8rem; gap: 0.5rem;">
                                 <div>{{ item.price | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate) }}</div>
-                                <div>×</div>
-                                <div><i class="bi bi-grid-fill me-1"></i>{{ item.amount }}</div>
-                                <div>=</div>
-                                <div>{{ getTotalPrice(item) | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate) }}</div>
-                            </div>
-
-                            <div class="d-flex align-items-center justify-content-between mt-2 mb-0 flex-nowrap"
-                                style="font-size: 0.8rem;">
                                 <div *ngIf="item.users && item.users.length > 0" style="white-space: nowrap;">
                                     <label class="mb-0" data-bs-toggle="tooltip" data-bs-placement="top"
                                         data-bs-html="true" data-bs-custom-class="custom-tooltip"
@@ -390,7 +383,7 @@
 
                             <!-- Mobile buttons (below tags) - only for editable items -->
                             <div *ngIf="item.canEdit" class="d-flex d-md-none gap-2 mt-2" (click)="$event.stopPropagation()">
-                                <button class="btn btn-sm btn-outline-warning text-white flex-fill" type="button"
+                                <button class="btn btn-sm btn-outline-primary text-white flex-fill" type="button"
                                     (click)="openModal('edit', item.id)">
                                     <i class="bi bi-pencil me-1"></i>{{ 'ITEMS.MODAL.SAVE' | translate }}
                                 </button>
@@ -399,6 +392,15 @@
                                     <i class="bi bi-trash me-1"></i>{{ 'ITEMS.MODAL.DELETE' | translate }}
                                 </button>
                             </div>
+
+                            <!-- View in Expenses button (full width at bottom) - only on small screens -->
+                            <a *ngIf="!item.canEdit && item.dayExpensesId && item.dayExpensesId !== '00000000-0000-0000-0000-000000000000'"
+                                [routerLink]="['/day-expenses-details', item.dayExpensesId]"
+                                [queryParams]="{ checkId: item.checkId, itemId: item.id }"
+                                class="btn btn-sm btn-outline-primary text-info w-100 mt-2 d-block d-md-none"
+                                (click)="$event.stopPropagation()">
+                                <i class="bi bi-cloud-check me-1"></i>{{ 'ITEMS.VIEW_IN_EXPENSES' | translate }}
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -428,7 +430,6 @@
 
         <!-- Items count -->
         <div *ngIf="totalCount > 0">
-            <hr class="w-100 my-0" style="border-color: #080f27; opacity: 1;" />
             <div class="pagination-info ms-3 my-3 pb-3 text-white">
                 {{ 'ITEMS.SHOWING' | translate }} {{ paginationStartIndex }} {{ 'ITEMS.TO' | translate }} {{
                 paginationEndIndex }} {{ 'ITEMS.OF' | translate }} {{ totalCount }}

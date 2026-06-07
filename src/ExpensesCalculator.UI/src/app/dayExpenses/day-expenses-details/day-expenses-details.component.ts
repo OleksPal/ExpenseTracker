@@ -257,58 +257,107 @@ export class DayExpensesDetailsComponent implements OnInit, AfterViewInit, OnDes
 
   // Tour
   initializeTour() {
-    // Check if checks exist by checking the checks array
+    // Detect small screen (same breakpoint as CSS: 576px)
+    const isSmallScreen = window.innerWidth < 576;
     const checksExist = this.checks && this.checks.length > 0;
-
     const tourSteps: any[] = [];
 
-    // Always show these basic steps
-    tourSteps.push(
-      {
-        anchorId: 'back-btn',
-        content: this.translate.instant('TOUR_DETAILS.BACK_BTN_CONTENT'),
-        title: this.translate.instant('TOUR_DETAILS.BACK_BTN_TITLE'),
+    // Step 1: Back button (all screens)
+    tourSteps.push({
+      anchorId: 'back-btn',
+      content: this.translate.instant('TOUR_DETAILS.BACK_BTN_CONTENT'),
+      title: this.translate.instant('TOUR_DETAILS.BACK_BTN_TITLE'),
+      placement: 'bottom',
+      enableBackdrop: true
+    });
+
+    // Step 2: Add check button (different anchor for small screens with data)
+    if (isSmallScreen && checksExist) {
+      tourSteps.push({
+        anchorId: 'add-check-btn-small',
+        content: this.translate.instant('TOUR_DETAILS.ADD_CHECK_CONTENT'),
+        title: this.translate.instant('TOUR_DETAILS.ADD_CHECK_TITLE'),
         placement: 'bottom',
         enableBackdrop: true
-      },
-      {
+      });
+    } else {
+      tourSteps.push({
         anchorId: 'add-check-btn',
         content: this.translate.instant('TOUR_DETAILS.ADD_CHECK_CONTENT'),
         title: this.translate.instant('TOUR_DETAILS.ADD_CHECK_TITLE'),
-        placement: 'top',
+        placement: isSmallScreen ? 'bottom' : 'top',
         enableBackdrop: true
-      }
-    );
+      });
+    }
 
-    // Add workflow steps only if checks exist
+    // Steps 3-6: Screen-specific workflow (only if checks exist)
     if (checksExist) {
-      // Get the first check's ID to construct the dynamic add-item-btn anchor
-      const firstCheckId = this.checks[0].id;
-      const addItemBtnAnchorId = `add-item-btn-${firstCheckId}`;
-
-      tourSteps.push(
-        {
-          anchorId: 'expand-check-btn',
-          content: this.translate.instant('TOUR_DETAILS.EXPAND_CHECK_CONTENT'),
-          title: this.translate.instant('TOUR_DETAILS.EXPAND_CHECK_TITLE'),
-          placement: 'right',
-          enableBackdrop: true
-        },
-        {
-          anchorId: addItemBtnAnchorId,
-          content: this.translate.instant('TOUR_DETAILS.ADD_ITEM_CONTENT'),
-          title: this.translate.instant('TOUR_DETAILS.ADD_ITEM_TITLE'),
-          placement: 'right',
-          enableBackdrop: true
-        },
-        {
-          anchorId: 'calculator-btn',
-          content: this.translate.instant('TOUR_DETAILS.CALCULATOR_CONTENT'),
-          title: this.translate.instant('TOUR_DETAILS.CALCULATOR_TITLE'),
-          placement: 'left',
-          enableBackdrop: true
-        }
-      );
+      if (isSmallScreen) {
+        // Small screen: accordion view
+        tourSteps.push(
+          {
+            anchorId: 'filter-sort-controls',
+            content: this.translate.instant('TOUR_DETAILS.FILTER_SORT_CONTROLS_CONTENT'),
+            title: this.translate.instant('TOUR_DETAILS.FILTER_SORT_CONTROLS_TITLE'),
+            placement: 'bottom',
+            enableBackdrop: true
+          },
+          {
+            anchorId: 'checks-accordion',
+            content: this.translate.instant('TOUR_DETAILS.CHECKS_ACCORDION_CONTENT'),
+            title: this.translate.instant('TOUR_DETAILS.CHECKS_ACCORDION_TITLE'),
+            placement: 'top',
+            enableBackdrop: true
+          },
+          {
+            anchorId: 'accordion-check-item',
+            content: this.translate.instant('TOUR_DETAILS.ACCORDION_CHECK_ITEM_CONTENT'),
+            title: this.translate.instant('TOUR_DETAILS.ACCORDION_CHECK_ITEM_TITLE'),
+            placement: 'top',
+            enableBackdrop: true
+          },
+          {
+            anchorId: 'calculator-btn',
+            content: this.translate.instant('TOUR_DETAILS.CALCULATOR_CONTENT'),
+            title: this.translate.instant('TOUR_DETAILS.CALCULATOR_TITLE'),
+            placement: 'bottom',
+            enableBackdrop: true
+          }
+        );
+      } else {
+        // Large screen: table view
+        const firstCheckId = this.checks[0].id;
+        tourSteps.push(
+          {
+            anchorId: 'expand-check-btn',
+            content: this.translate.instant('TOUR_DETAILS.EXPAND_CHECK_CONTENT'),
+            title: this.translate.instant('TOUR_DETAILS.EXPAND_CHECK_TITLE'),
+            placement: 'right',
+            enableBackdrop: true
+          },
+          {
+            anchorId: `add-item-btn-${firstCheckId}`,
+            content: this.translate.instant('TOUR_DETAILS.ADD_ITEM_CONTENT'),
+            title: this.translate.instant('TOUR_DETAILS.ADD_ITEM_TITLE'),
+            placement: 'right',
+            enableBackdrop: true
+          },
+          {
+            anchorId: 'actions-menu',
+            content: this.translate.instant('TOUR_DETAILS.ACTIONS_MENU_CONTENT'),
+            title: this.translate.instant('TOUR_DETAILS.ACTIONS_MENU_TITLE'),
+            placement: 'left',
+            enableBackdrop: true
+          },
+          {
+            anchorId: 'calculator-btn',
+            content: this.translate.instant('TOUR_DETAILS.CALCULATOR_CONTENT'),
+            title: this.translate.instant('TOUR_DETAILS.CALCULATOR_TITLE'),
+            placement: 'left',
+            enableBackdrop: true
+          }
+        );
+      }
     }
 
     // Initialize tour with global button title configuration
@@ -320,16 +369,36 @@ export class DayExpensesDetailsComponent implements OnInit, AfterViewInit, OnDes
   }
 
   startTour() {
-    // Auto-expand the first check when tour starts so the Add Item button becomes visible
-    const expandButton = document.querySelector('[touranchor="expand-check-btn"]') as HTMLElement;
-    if (expandButton) {
-      // Find the collapse target from the button's data-bs-target attribute
-      const collapseTarget = expandButton.getAttribute('data-bs-target');
-      if (collapseTarget) {
-        const collapseElement = document.querySelector(collapseTarget);
+    const isSmallScreen = window.innerWidth < 576;
+    const checksExist = this.checks && this.checks.length > 0;
+
+    if (!checksExist) {
+      this.tourService.start();
+      return;
+    }
+
+    if (isSmallScreen) {
+      // For small screens (accordion view), expand the first accordion item
+      const firstCheck = this.checks[0];
+      const accordionButton = document.querySelector(
+        `[data-bs-target="#accordionCollapse${firstCheck.id}"]`
+      ) as HTMLElement;
+      if (accordionButton) {
+        const collapseElement = document.getElementById('accordionCollapse' + firstCheck.id);
         if (collapseElement && !collapseElement.classList.contains('show')) {
-          // Programmatically expand the first check
-          expandButton.click();
+          accordionButton.click();
+        }
+      }
+    } else {
+      // For large screens (table view), expand the first check
+      const expandButton = document.querySelector('[touranchor="expand-check-btn"]') as HTMLElement;
+      if (expandButton) {
+        const collapseTarget = expandButton.getAttribute('data-bs-target');
+        if (collapseTarget) {
+          const collapseElement = document.querySelector(collapseTarget);
+          if (collapseElement && !collapseElement.classList.contains('show')) {
+            expandButton.click();
+          }
         }
       }
     }

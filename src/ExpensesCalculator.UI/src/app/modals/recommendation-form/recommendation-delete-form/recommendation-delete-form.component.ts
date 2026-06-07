@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { ModalService } from '../../services/modal.service';
-import { ItemsService } from '../../services/items.service';
-import { ToastService } from '../../services/toast.service';
+import { ModalService } from '../../../services/modal.service';
+import { ItemsService } from '../../../services/items.service';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-recommendation-delete-form',
@@ -48,7 +48,7 @@ export class RecommendationDeleteFormComponent {
           this.onSuccess();
         }
       },
-      error: error => {
+      error: (error: any) => {
         const errorMessage = error?.error?.message || error?.message || this.translate.instant('ITEMS.TOAST.DELETE_ERROR');
         this.toastService.error(
           this.translate.instant('ITEMS.TOAST.ERROR'),

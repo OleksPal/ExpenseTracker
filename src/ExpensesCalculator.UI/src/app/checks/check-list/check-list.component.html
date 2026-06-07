@@ -87,13 +87,13 @@
 
     <!-- Add Check button for small screens -->
     <div *ngIf="checksList.length > 0" class="d-block d-sm-none mb-2 px-2">
-        <button class="btn btn-outline-primary text-white w-100" (click)="openModal('add', '')">
+        <button class="btn btn-outline-primary text-white w-100" (click)="openModal('add', '')" tourAnchor="add-check-btn-small">
             <i class="bi bi-plus-circle me-1"></i>{{ 'CHECKS.ADD' | translate }}
         </button>
     </div>
 
     <!-- Filter and Sort controls for small screens -->
-    <div *ngIf="checksList.length > 0" class="d-block d-sm-none mb-2 px-2">
+    <div *ngIf="checksList.length > 0" class="d-block d-sm-none mb-2 px-2" tourAnchor="filter-sort-controls">
         <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
             <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }} & <i class="bi bi-sort-down me-1"></i>{{ 'ITEMS.SORT.CAPTION' | translate }}
         </small>
@@ -218,7 +218,7 @@
     <!-- Accordion view for small screens -->
     <div *ngIf="filteredChecksList.length > 0" class="accordion d-block d-sm-none px-2" id="checksAccordion">
         <div *ngFor="let check of filteredChecksList; let i = index" class="accordion-item bg-transparent border-0">
-            <h2 class="accordion-header" [id]="'heading' + check.id">
+            <h2 class="accordion-header" [id]="'heading' + check.id" tourAnchor="checks-accordion">
                 <button class="accordion-button collapsed bg-transparent text-white border-bottom border-primary"
                         type="button"
                         data-bs-toggle="collapse"
@@ -226,7 +226,8 @@
                         aria-expanded="false"
                         [attr.aria-controls]="'accordionCollapse' + check.id"
                         (click)="toggleCheckExpansion(check.id)"
-                        style="padding: 0.75rem 0.5rem;">
+                        style="padding: 0.75rem 0.5rem;"                        
+                        [tourAnchor]="i === 0 ? 'accordion-check-item' : ''">
                     <div class="d-flex justify-content-between align-items-center w-100 me-2">
                         <div class="d-flex flex-column flex-grow-1">
                             <span class="fw-bold mb-2" style="font-size: 0.8rem;">
@@ -277,7 +278,7 @@
                                 [isLoading]="isCheckItemsLoading(check.id)"
                                 [highlightedItemId]="highlightedItemId"
                                 [disableTooltipManagement]="true"
-                                [isFirstCheck]="false"
+                                [isFirstCheck]="i === 0"
                                 (itemsChanged)="loadItemsForCheck($event)"
                                 (checkSumUpdated)="onCheckSumUpdated($event)">
                             </app-item-list>
