@@ -13,6 +13,19 @@
 #customProportion > .col-10 {
     width: 84%;
 }
+
+/* Reduce vertical navbar width on small screens */
+@media (max-width: 576px) {
+    #customProportion > .col-2 {
+        width: 50px !important;
+        flex: 0 0 50px;
+    }
+
+    #customProportion > .col-10 {
+        width: calc(100% - 50px) !important;
+        flex: 1 1 calc(100% - 50px);
+    }
+}
 html, body { height: 100%; font-size: large; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
@@ -185,4 +198,121 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .btn-action-delete:hover {
   background-color: #b52a3a;
   border-color: #b52a3a;
+}
+
+/* Responsive text sizing for modals and tour on small screens */
+@media (max-width: 576px) {
+  /* Modal sizing */
+  .modal-title {
+    font-size: 1rem !important;
+  }
+
+  .modal-body {
+    font-size: 0.85rem !important;
+  }
+
+  .modal-body label,
+  .modal-body .form-label {
+    font-size: 0.85rem !important;
+  }
+
+  .modal-body input,
+  .modal-body select,
+  .modal-body textarea,
+  .modal-body .form-control {
+    font-size: 0.85rem !important;
+  }
+
+  .modal-footer .btn {
+    font-size: 0.85rem !important;
+    padding: 0.3rem 0.6rem !important;
+  }
+
+  /* Tour popover sizing */
+  .popover {
+    max-width: 300px !important;
+  }
+
+  .popover-header {
+    font-size: 0.85rem !important;
+    padding: 3px 6px !important;
+  }
+
+  .popover-body {
+    font-size: 0.75rem !important;
+    padding: 3px 6px !important;
+  }
+
+  .popover .btn,
+  .popover button {
+    font-size: 0.7rem !important;
+    padding: 2px 8px !important;
+  }
+
+  .popover small,
+  .popover .text-muted {
+    font-size: 0.65rem !important;
+  }
+
+  /* Global button sizing */
+  .btn {
+    font-size: 0.85rem !important;
+    padding: 0.2rem 0.5rem !important;
+  }
+
+  .btn-sm {
+    font-size: 0.75rem !important;
+    padding: 0.2rem 0.4rem !important;
+  }
+
+  /* Dropdown controls */
+  .dropdown-toggle {
+    font-size: 0.85rem !important;
+    padding: 0.2rem 0.5rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .dropdown-item {
+    font-size: 0.8rem !important;
+  }
+
+  .dropdown-menu-custom .dropdown-item {
+    font-size: 0.8rem !important;
+  }
+
+  /* Form controls */
+  .form-control {
+    font-size: 0.85rem !important;
+    padding: 0.25rem 0.5rem !important;
+  }
+
+  .input-group-text {
+    font-size: 0.75rem !important;
+    padding: 0.25rem 0.5rem !important;
+  }
+
+  /* Text elements */
+  small {
+    font-size: 0.65rem !important;
+  }
+
+  .text-white-50 {
+    font-size: 0.6rem !important;
+  }
+
+  /* Headings */
+  h4 {
+    font-size: 1.1rem !important;
+  }
+
+  h5 {
+    font-size: 1rem !important;
+  }
+
+  /* Spinner */
+  .spinner-border {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+    border-width: 0.15rem !important;
+  }
 }

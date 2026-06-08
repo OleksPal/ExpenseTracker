@@ -60,6 +60,7 @@ export interface CheckCalculation {
     id: string;
     location: string;
     payer: string;
+    totalSum: number;
     dayExpensesId: string;
   };
   items: ItemCalculation[];

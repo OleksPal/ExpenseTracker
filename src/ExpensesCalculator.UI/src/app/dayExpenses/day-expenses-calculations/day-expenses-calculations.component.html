@@ -1,14 +1,14 @@
 <tour-step-template></tour-step-template>
 
-<div class="rounded mt-4 mb-5 ms-sm-4 me-sm-4 dark-blue-1">
+<div class="rounded mt-4 mb-5 mx-3 ms-sm-4 me-sm-4 dark-blue-1">
     <div class="container-fluid px-3 py-2 text-white">
         <div class="d-flex align-items-center justify-content-between mt-2 mb-3">
             <div class="d-flex align-items-center">
-                <button class="btn btn-outline-primary text-white px-4 me-3" (click)="navigateBack()" tourAnchor="back-to-details-btn">
+                <button id="backButton" class="btn btn-outline-primary text-white px-4 me-2 me-md-3" (click)="navigateBack()" tourAnchor="back-to-details-btn">
                     <i class="bi bi-arrow-left" style="transform: scaleX(2); display: inline-block;"></i>
                 </button>
                 <h4 class="mb-0">
-                    <i class="bi bi-calculator me-2"></i>{{ 'CALCULATIONS.TITLE' | translate }}
+                    <i class="bi bi-calculator me-1 me-md-2"></i>{{ 'CALCULATIONS.TITLE' | translate }}
                 </h4>
             </div>
             <div class="d-flex align-items-center gap-2">
@@ -21,7 +21,7 @@
 
         <!-- No Data -->
         <div *ngIf="!isLoading && (!calculationsData || !calculationsData.dayExpensesCalculations || calculationsData.dayExpensesCalculations.length === 0)"
-            class="text-white text-center pt-4 pb-5">
+            class="no-data-section text-white text-center pt-4 pb-5">
             <h2>{{ 'CALCULATIONS.NO_DATA' | translate }}</h2>
             <h5 class="pt-3">{{ 'CALCULATIONS.NO_DATA_HINT' | translate }}</h5>
         </div>
@@ -58,18 +58,18 @@
                             <div class="d-flex align-items-center mb-2">
                                 <span style="cursor: pointer;" data-bs-toggle="tooltip" data-bs-placement="top"
                                     data-bs-html="true"
-                                    [attr.data-bs-title]="getCheckTooltip(checkCalc.items, checkCalc.check.payer)">
-                                    <i class="bi bi-cart me-2"></i>
+                                    [attr.data-bs-title]="getCheckTooltip(checkCalc.check.totalSum, checkCalc.check.payer)">
+                                    <i class="bi bi-cart me-1"></i>
                                     <span class="fw-bold">{{ checkCalc.check.location }}</span>
                                 </span>
                             </div>
 
                             <!-- Items List -->
-                            <ul class="list-unstyled ms-3">
+                            <ul class="list-unstyled ms-0 ms-md-3">
                                 <li *ngFor="let itemCalc of checkCalc.items" class="mb-1">
                                     <i class="bi bi-box me-1"></i>
                                     <span>{{ itemCalc.item.name }}:</span>
-                                    <span class="ms-1">{{ itemCalc.item.price * itemCalc.item.amount | currency:'UAH':'₴' }}</span>
+                                    <span class="ms-1">{{ itemCalc.item.price * itemCalc.item.amount | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate) }}</span>
                                     <span class="mx-1">/</span>
                                     <span class="text-muted text-white"
                                         style="cursor: pointer; color: white !important;" data-bs-toggle="tooltip"
@@ -77,8 +77,8 @@
                                         [attr.data-bs-title]="getItemUsersTooltip(itemCalc.item.users)">
                                         <i class="bi bi-people-fill me-1"></i>{{ itemCalc.item.users.length }}
                                     </span>
-                                    <span class="mx-1">=</span>
-                                    <span class="text-warning fw-bold">{{ itemCalc.pricePerUser | currency:'UAH':'₴' }}</span>
+                                    <span class="me-1">=</span>
+                                    <span class="text-warning fw-bold">{{ itemCalc.pricePerUser | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate) }}</span>
                                 </li>
                             </ul>
 
@@ -86,7 +86,7 @@
                             <div>
                                 <i class="bi bi-coin me-1"></i>
                                 <span>{{ 'CALCULATIONS.SUM_PER_PARTICIPANT' | translate }}:</span>
-                                <span class="text-warning fw-bold ms-1">{{ checkCalc.sumPerParticipant | currency:'UAH':'₴' }}</span>
+                                <span class="text-warning fw-bold ms-1">{{ checkCalc.sumPerParticipant | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate) }}</span>
                             </div>
 
                             <hr class="my-3" style="border-color: #6c757d; opacity: 1;" />
@@ -97,7 +97,7 @@
                     <div>
                         <i class="bi bi-wallet2 me-1"></i>
                         <span>{{ 'CALCULATIONS.TOTAL_EXPENSES' | translate }}:</span>
-                        <span class="text-warning fw-bold ms-1">{{ getTotalForUser(participant) | currency:'UAH':'₴' }}</span>
+                        <span class="text-warning fw-bold ms-1">{{ getTotalForUser(participant) | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate) }}</span>
                     </div>
 
                 </ng-container>
@@ -112,10 +112,10 @@
                         <i class="bi bi-cash-stack me-1"></i>
                         <span class="fw-bold">{{ 'CALCULATIONS.TRANSACTION_LIST' | translate }}:</span>
                     </div>
-                    <ul class="list-unstyled ms-3 mb-0">
+                    <ul class="list-unstyled ms-1 ms-md-3 mb-0">
                         <li *ngFor="let transaction of calculationsData.optimizedUserTransactions" class="mb-1">
                             <i class="bi bi-person-fill me-1"></i>{{ transaction.subjects.sender }}
-                            <span class="text-warning fw-bold mx-1">({{ transaction.transferAmount | currency:'UAH':'₴'
+                            <span class="text-warning fw-bold mx-1">({{ transaction.transferAmount | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate)
                                 }})</span>
                             <span class="mx-1">→</span>
                             <i class="bi bi-person-fill me-1"></i>{{ transaction.subjects.recipient }}
@@ -140,11 +140,11 @@
                     </div>
 
                     <div class="collapse" id="fullTransactionList">
-                        <ul class="list-unstyled ms-3 mb-0">
+                        <ul class="list-unstyled ms-1 ms-md-3 mb-0">
                             <li *ngFor="let transaction of calculationsData.allUsersTransactions" class="mb-1">
                                 <i class="bi bi-cart me-1"></i>{{ transaction.checkName }}:
                                 <i class="bi bi-person-fill ms-2 me-1"></i>{{ transaction.subjects.sender }}
-                                <span class="text-warning fw-bold mx-1">({{ transaction.transferAmount | currency:'UAH':'₴' }})</span>
+                                <span class="text-warning fw-bold mx-1">({{ transaction.transferAmount | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate) }})</span>
                                 <span class="mx-1">→</span>
                                 <i class="bi bi-person-fill me-1"></i>{{ transaction.subjects.recipient }}
                             </li>

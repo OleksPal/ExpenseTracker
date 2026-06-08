@@ -1,17 +1,17 @@
 <tour-step-template></tour-step-template>
 
-<div class="rounded mt-4 mb-5 ms-sm-4 me-sm-4 dark-blue-1">
-    <div class="container-fluid px-3 pt-2 text-white">
+<div class="rounded mt-4 mb-5 mx-3 ms-sm-4 me-sm-4 dark-blue-1">
+    <div class="container-fluid px-2 px-sm-3 pt-2 text-white">
         <div class="d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center gap-2">
-                <h4 class="mt-1 mb-4">
+                <h4 class="mt-1 mb-3 mb-sm-4">
                     <i class="bi bi-list-nested me-1"></i>{{ 'EXPENSES.TITLE' | translate }}
                 </h4>
-                <button class="btn btn-sm btn-outline-primary text-white mb-3" (click)="startTour()" title="Start tour">
+                <button class="btn btn-sm btn-outline-primary text-white mb-3 mb-sm-3" (click)="startTour()" title="Start tour">
                     <i class="bi bi-question-circle"></i>
                 </button>
             </div>
-            <div class="spinner-border" [class.invisible]="!isLoading" role="status"></div>
+            <div class="spinner-border mt-1 mb-3 mb-sm-4" [class.invisible]="!isLoading" role="status"></div>
         </div>
 
         <button *ngIf="showAddExpenseButton()" class="btn btn-outline-primary text-white" tourAnchor="add-expense-btn" (click)="openModal('add', '')">
@@ -21,18 +21,18 @@
         <hr class="w-100 my-3" style="border-color: #080f27; opacity: 1;" />
 
     </div>
-    <div *ngIf="showNoDataMessage()" class="text-white text-center pt-4 pb-5">
+    <div *ngIf="showNoDataMessage()" class="no-data-section text-white text-center pt-4 pb-5">
         <h2>{{ 'EXPENSES.NO_DATA' | translate }}</h2>
         <h5 class="pt-3">{{ 'EXPENSES.NO_DATA_HINT' | translate }}</h5>
         <button class="btn btn-outline-primary text-white mt-4" tourAnchor="add-expense-btn" (click)="openModal('add', '')">
             <i class="bi bi-plus-circle me-1"></i>{{ 'EXPENSES.ADD' | translate }}
         </button>
     </div>
-    <div *ngIf="showFilterControls()" class="d-flex justify-content-end pb-lg-2 px-2 mt-3 mb-2">
+    <div *ngIf="showFilterControls()" class="d-flex justify-content-start justify-content-lg-end pb-lg-2 mt-3 mb-2">
         <div class="col-12">
-            <div class="d-flex flex-column flex-lg-row gap-2 align-items-stretch align-items-lg-center justify-content-lg-between">
+            <div class="d-flex flex-column flex-lg-row gap-2 align-items-stretch align-items-lg-center justify-content-lg-between px-2 px-sm-3">
                 <!-- LEFT SIDE: Date range -->
-                <div class="d-flex flex-column ms-2" tourAnchor="date-range-filter">
+                <div class="d-flex flex-column" tourAnchor="date-range-filter">
                     <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
                         <i class="bi bi-calendar-range me-1"></i>{{ 'EXPENSES.DATE_FILTER' | translate }}
                     </small>
@@ -60,8 +60,8 @@
                     </div>
                 </div>
 
-                <!-- RIGHT SIDE: Filter dropdown and search -->
-                <div class="d-flex flex-column" tourAnchor="search-filter">
+                <!-- RIGHT SIDE: Filter dropdown and search (hidden on small screens) -->
+                <div class="d-none d-sm-flex flex-column" tourAnchor="search-filter">
                     <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
                         <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
                     </small>
@@ -77,10 +77,36 @@
             </div>
         </div>
     </div>
-    <div *ngIf="showNoSearchResults()" class="text-white text-center py-4">
-        <h3>{{ 'EXPENSES.NO_SEARCH_RESULTS' | translate }}</h3>
+
+    <!-- Offcanvas for filters on small screens -->
+    <div class="offcanvas offcanvas-end dark-blue-1 text-white" tabindex="-1" id="filterOffcanvas" aria-labelledby="filterOffcanvasLabel">
+        <div class="offcanvas-header border-bottom border-secondary">
+            <h5 class="offcanvas-title" id="filterOffcanvasLabel">
+                <i class="bi bi-funnel me-2"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="d-flex flex-column">
+                <small class="text-white-50 mb-2" style="font-size: 0.7rem;">
+                    <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
+                </small>
+                <app-filter-bar
+                    [filterOptions]="filterOptions"
+                    [selectedCriteria]="filterCriteria"
+                    [filterText]="filterText"
+                    [placeholderKey]="'EXPENSES.SEARCH'"
+                    (criteriaChange)="changeFilterCriteria($event)"
+                    (filterTextChange)="onFilterChange($event)">
+                </app-filter-bar>
+                <button class="btn btn-primary w-100 mt-3" type="button" data-bs-dismiss="offcanvas">
+                    {{ 'ITEMS.FILTER.APPLY' | translate }}
+                </button>
+            </div>
+        </div>
     </div>
-    <div *ngIf="expensesList.length > 0" class="table-responsive fix-table-height">
+    <!-- Table view for larger screens -->
+    <div *ngIf="expensesList.length > 0" class="table-responsive fix-table-height d-none d-sm-block">
         <table class="table table-borderless text-white mb-0" id="daysTable">
             <thead tourAnchor="expenses-table">
                 <tr>
@@ -94,12 +120,12 @@
                         {{ 'EXPENSES.LOCATION' | translate }}
                         <i [ngClass]="getIconOrderClass('location')"></i>
                     </th>
-                    <th class="text-nowrap bg-transparent text-white" width="25%" (click)="sortExpenses('participants')">
+                    <th class="text-nowrap bg-transparent text-white d-none d-sm-table-cell" width="25%" (click)="sortExpenses('participants')">
                         <i class="bi bi-people-fill pe-1"></i>
                         {{ 'EXPENSES.PARTICIPANTS' | translate }}
                         <i [ngClass]="getIconOrderClass('participants')"></i>
                     </th>
-                    <th class="text-nowrap bg-transparent text-white" width="20%" (click)="sortExpenses('totalSum')">
+                    <th class="text-nowrap bg-transparent text-white d-none d-sm-table-cell" width="20%" (click)="sortExpenses('totalSum')">
                         <i class="bi bi-cash-stack pe-1"></i>
                         {{ 'EXPENSES.TOTAL_SUM' | translate }}
                         <i [ngClass]="getIconOrderClass('totalSum')"></i>
@@ -115,7 +141,7 @@
                     <td class="text-white location-cell">
                         {{ day.location || '-' }}
                     </td>
-                    <td>
+                    <td class="d-none d-sm-table-cell">
                         <label
                             class="text-nowrap text-white"
                             style="cursor: pointer;"
@@ -126,8 +152,8 @@
                             {{ day.participants.length }} {{ 'EXPENSES.PEOPLE' | translate }}
                         </label>
                     </td>
-                    <td class="text-nowrap" class="text-white">
-                        {{ day.totalSum | currency:'UAH':'₴' }}
+                    <td class="text-nowrap text-white d-none d-sm-table-cell">
+                        {{ day.totalSum | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate) }}
                     </td>
                     <td>
                         <div class="dropdown">
@@ -170,6 +196,129 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Filter and Sort controls for small screens -->
+    <div *ngIf="showFilterControls()" class="d-block d-sm-none mb-2 px-2" tourAnchor="sort-controls">
+        <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
+            <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }} & <i class="bi bi-sort-down me-1"></i>{{ 'ITEMS.SORT.CAPTION' | translate }}
+        </small>
+        <div class="d-flex w-100 filter-sort-group">
+            <button class="btn btn-outline-primary text-white filter-btn"
+                    type="button"
+                    data-bs-toggle="offcanvas"
+                    data-bs-target="#filterOffcanvas"
+                    aria-controls="filterOffcanvas">
+                <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
+            </button>
+            <app-sort-bar
+                [sortOptions]="sortOptions"
+                [selectedColumn]="sortColumn"
+                [selectedOrder]="sortOrder"
+                (sortChange)="onSortChange($event)">
+            </app-sort-bar>
+        </div>
+    </div>
+
+    <!-- No Search Results -->
+    <div *ngIf="showNoSearchResults()" class="text-white text-center py-4">
+        <h3>{{ 'EXPENSES.NO_SEARCH_RESULTS' | translate }}</h3>
+    </div>
+
+    <!-- Data label for small screens -->
+    <div *ngIf="expensesList.length > 0" class="d-block d-sm-none px-2">
+        <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
+            <i class="bi bi-table me-1"></i>{{ 'ITEMS.DATA' | translate }}
+        </small>
+    </div>
+
+    <!-- Accordion view for small screens -->
+    <div *ngIf="expensesList.length > 0" class="accordion d-block d-sm-none" id="expensesAccordion" tourAnchor="expenses-accordion">
+        <div *ngFor="let day of expensesList; let i = index" class="accordion-item bg-transparent border-0">
+            <h2 class="accordion-header" [id]="'heading' + day.id">
+                <button class="accordion-button collapsed bg-transparent text-white border-bottom border-primary"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        [attr.data-bs-target]="'#collapse' + day.id"
+                        aria-expanded="false"
+                        [attr.aria-controls]="'collapse' + day.id"
+                        style="padding: 0.75rem 0.5rem;">
+                    <div class="d-flex justify-content-between align-items-center w-100 me-2">
+                        <div class="d-flex flex-column">
+                            <span class="fw-bold mb-2" style="font-size: 0.8rem;">
+                                <i class="bi bi-calendar-event me-1"></i>
+                                {{ day.date | date:'EEE, MMM dd, yyyy':'':currentLocale | titlecase }}
+                            </span>
+                            <span class="text-white-50" style="font-size: 0.9rem;">
+                                <i class="bi bi-geo-alt-fill me-1"></i>
+                                {{ day.location || '-' }}
+                            </span>
+                        </div>
+                    </div>
+                </button>
+            </h2>
+            <div [id]="'collapse' + day.id"
+                 class="accordion-collapse collapse"
+                 [attr.aria-labelledby]="'heading' + day.id"
+                 data-bs-parent="#expensesAccordion">
+                <div class="accordion-body bg-transparent text-white" style="padding: 0.75rem 0.5rem;">
+                    <div class="d-flex flex-column gap-2">
+                        <!-- Participants -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size: 0.85rem;">
+                                <i class="bi bi-people-fill me-1"></i>
+                                {{ 'EXPENSES.PARTICIPANTS' | translate }}:
+                            </span>
+                            <label class="text-white"
+                                   style="cursor: pointer; font-size: 0.85rem;"
+                                   data-bs-toggle="tooltip"
+                                   data-bs-html="true"
+                                   [attr.data-bs-title]="getTooltipContent(day.id)">
+                                {{ day.participants.length }} {{ 'EXPENSES.PEOPLE' | translate }}
+                            </label>
+                        </div>
+
+                        <!-- Total Sum -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size: 0.85rem;">
+                                <i class="bi bi-cash-stack me-1"></i>
+                                {{ 'EXPENSES.TOTAL_SUM' | translate }}:
+                            </span>
+                            <span class="fw-bold" style="font-size: 0.85rem;">
+                                {{ day.totalSum | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate) }}
+                            </span>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2 mt-2 flex-wrap">
+                            <button class="btn btn-sm btn-outline-primary text-white flex-fill"
+                                    (click)="openDetails(day.id)">
+                                <i class="bi bi-eye me-1"></i>{{ 'EXPENSES.OPEN' | translate }}
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary text-white flex-fill"
+                                    (click)="navigateToCalculations(day.id)">
+                                <i class="bi bi-calculator me-1"></i>{{ 'EXPENSES.CALCULATE' | translate }}
+                            </button>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button class="btn btn-sm btn-outline-primary text-white flex-fill"
+                                    (click)="openModal('edit', day.id)">
+                                <i class="bi bi-pencil me-1"></i>{{ 'EXPENSES.EDIT' | translate }}
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary text-white flex-fill"
+                                    (click)="openModal('share', day.id)">
+                                <i class="bi bi-share me-1"></i>{{ 'EXPENSES.SHARE' | translate }}
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger text-white flex-fill"
+                                    (click)="openModal('delete', day.id)">
+                                <i class="bi bi-trash me-1"></i>{{ 'EXPENSES.DELETE' | translate }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <hr class="w-100 my-0" style="border-color: #080f27; opacity: 1;" />
 
     <!-- Pagination -->
@@ -245,145 +394,3 @@
     </div>
 
 </div>
-
-<app-modal-window [modalId]="'staticBackdrop'" [modalTitle]="modalTitle" [currentModalContent]="currentModalContent">
-    <div class="modal-header py-2 bg-dark text-white border-secondary">
-        <h5 class="modal-title">{{ modalTitle }}</h5>
-        <button type="button" class="btn-close btn-close-white" (click)="hideModal()" aria-label="Close"></button>
-    </div>
-    <div class="modal-body bg-dark text-white">
-
-        <!-- Add Expenses -->
-        <form *ngIf="currentModalContent === 'add'">
-            <div class="form-group mb-3">
-                <i class="bi bi-calendar-event-fill mx-1"></i>
-                <label class="control-label">{{ 'EXPENSES.MODAL.DATE_LABEL' | translate }}<span class="text-danger">*</span></label>
-                <input [value]="date | date:'EEE, MMM dd, yyyy':'':currentLocale | titlecase" name="date" type="text" class="form-control" [class.is-invalid]="formErrors['date']" [class.is-valid]="formValidated && !formErrors['date'] && date" id="modalDateInput" required readonly/>
-                <div class="invalid-feedback d-block" *ngIf="formErrors['date']">{{ formErrors['date'] }}</div>
-            </div>
-            <div class="form-group mb-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <label class="control-label mb-0">
-                        <i class="bi bi-geo-alt-fill me-1"></i>{{ 'EXPENSES.MODAL.LOCATION_LABEL' | translate }}
-                    </label>
-                    <small class="text-white" style="font-size: 0.75rem;">{{ location.length }}/25</small>
-                </div>
-                <input [(ngModel)]="location" name="location" class="form-control" [class.is-invalid]="formErrors['location']" [class.is-valid]="formValidated && !formErrors['location']" maxlength="25" id="location" />
-                <div class="invalid-feedback" *ngIf="formErrors['location']">{{ formErrors['location'] }}</div>
-            </div>
-            <div class="form-group mb-3">
-                <i class="bi bi-people-fill mx-1"></i>
-                <label class="control-label">{{ 'EXPENSES.MODAL.PARTICIPANTS_LABEL' | translate }}<span class="text-danger">*</span></label>
-                <input [(ngModel)]="participants" name="participants" class="form-control" [class.is-invalid]="formErrors['participants']" id="participants" [placeholder]="'EXPENSES.MODAL.PARTICIPANTS_PLACEHOLDER' | translate" required />
-                <label class="form-text text-white small mt-0 pt-0"><span class="text-danger">*</span>
-                    {{ 'EXPENSES.MODAL.PARTICIPANTS_HINT' | translate }}</label>
-                <div class="invalid-feedback" *ngIf="formErrors['participants']">{{ formErrors['participants'] }}</div>
-            </div>
-            <button type="button" value="Create" class="btn btn-success" (click)="createDayExpenses()">
-                <i class="bi bi-plus-circle me-1"></i>{{ 'EXPENSES.MODAL.ADD_BUTTON' | translate }}
-            </button>
-        </form>
-
-        <!-- Edit Expenses -->
-        <form *ngIf="currentModalContent === 'edit'">
-            <div class="form-group mb-3">
-                <i class="bi bi-calendar-event-fill mx-1"></i>
-                <label class="control-label">{{ 'EXPENSES.MODAL.DATE_LABEL' | translate }}<span class="text-danger">*</span></label>
-                <input [value]="date | date:'EEE, MMM dd, yyyy':'':currentLocale | titlecase" name="date" type="text" class="form-control" [class.is-invalid]="formErrors['date']" [class.is-valid]="formValidated && !formErrors['date'] && date" id="modalDateInput" required readonly/>
-                <div class="invalid-feedback d-block" *ngIf="formErrors['date']">{{ formErrors['date'] }}</div>
-            </div>
-            <div class="form-group mb-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <label class="control-label mb-0">
-                        <i class="bi bi-geo-alt-fill me-1"></i>{{ 'EXPENSES.MODAL.LOCATION_LABEL' | translate }}
-                    </label>
-                    <small class="text-white" style="font-size: 0.75rem;">{{ location.length }}/25</small>
-                </div>
-                <input [(ngModel)]="location" name="location" class="form-control" [class.is-invalid]="formErrors['location']" [class.is-valid]="formValidated && !formErrors['location']" maxlength="25" id="location" />
-                <div class="invalid-feedback" *ngIf="formErrors['location']">{{ formErrors['location'] }}</div>
-            </div>
-            <div class="form-group mb-3">
-                <i class="bi bi-people-fill mx-1"></i>
-                <label class="control-label">{{ 'EXPENSES.MODAL.PARTICIPANTS_LABEL' | translate }}<span class="text-danger">*</span></label>
-                <input [(ngModel)]="participants" name="participants" class="form-control" [class.is-invalid]="formErrors['participants']" id="participants" [placeholder]="'EXPENSES.MODAL.PARTICIPANTS_PLACEHOLDER' | translate" required />
-                <label class="form-text text-white small mt-0 pt-0"><span class="text-danger">*</span>
-                    {{ 'EXPENSES.MODAL.PARTICIPANTS_HINT' | translate }}</label>
-                <div class="invalid-feedback" *ngIf="formErrors['participants']">{{ formErrors['participants'] }}</div>
-            </div>
-            <div class="form-group mb-3">
-                <i class="bi bi-cash-stack mx-1"></i>
-                <label class="control-label">{{ 'EXPENSES.MODAL.TOTAL_SUM_LABEL' | translate }}</label>
-                <input [value]="totalSum | currency:'UAH':'₴'" class="form-control" disabled readonly />
-            </div>
-            <button type="button" value="Edit" class="btn btn-warning" (click)="editDayExpenses()">
-                <i class="bi bi-pencil me-1"></i>{{ 'EXPENSES.MODAL.EDIT_BUTTON' | translate }}
-            </button>
-        </form>
-
-        <!-- Delete Expenses -->
-        <form *ngIf="currentModalContent === 'delete'">
-            <div class="form-group mb-3">
-                <i class="bi bi-calendar-event-fill mx-1"></i>
-                <label class="control-label">{{ 'EXPENSES.MODAL.DATE_LABEL' | translate }}</label>
-                <input [value]="date | date:'EEE, MMM dd, yyyy':'':currentLocale | titlecase" name="date" type="text" class="form-control" id="modalDateInput" disabled readonly />
-                <span class="text-danger"></span>
-            </div>
-            <div class="form-group mb-3">
-                <i class="bi bi-geo-alt-fill mx-1"></i>
-                <label class="control-label">{{ 'EXPENSES.MODAL.LOCATION_LABEL' | translate }}</label>
-                <input [(ngModel)]="location" name="location" class="form-control" id="location" disabled readonly />
-                <span class="text-danger"></span>
-            </div>
-            <div class="form-group mb-3">
-                <i class="bi bi-people-fill mx-1"></i>
-                <label class="control-label">{{ 'EXPENSES.MODAL.PARTICIPANTS_LABEL' | translate }}</label>
-                <input [(ngModel)]="participants" name="participants" class="form-control" id="participants" disabled readonly />
-                <span class="text-danger"></span>
-            </div>
-            <div class="form-group mb-3">
-                <i class="bi bi-cash-stack mx-1"></i>
-                <label class="control-label">{{ 'EXPENSES.MODAL.TOTAL_SUM_LABEL' | translate }}</label>
-                <input [value]="totalSum | currency:'UAH':'₴'" class="form-control" disabled readonly />
-            </div>
-            <button type="button" value="Delete" class="btn btn-danger" (click)="deleteDayExpenses()">
-                <i class="bi bi-trash me-1"></i>{{ 'EXPENSES.MODAL.DELETE_BUTTON' | translate }}
-            </button>
-        </form>
-
-        <!-- Share Expenses -->
-        <form *ngIf="currentModalContent === 'share'">
-            <div class="form-group mb-3">
-                <i class="bi bi-calendar-event-fill mx-1"></i>
-                <label class="control-label">{{ 'EXPENSES.MODAL.DATE_LABEL' | translate }}</label>
-                <input [value]="date | date:'EEE, MMM dd, yyyy':'':currentLocale | titlecase" name="date" type="text" class="form-control" id="modalDateInput" disabled readonly />
-                <span class="text-danger"></span>
-            </div>
-            <div class="form-group mb-3">
-                <i class="bi bi-geo-alt-fill mx-1"></i>
-                <label class="control-label">{{ 'EXPENSES.MODAL.LOCATION_LABEL' | translate }}</label>
-                <input [(ngModel)]="location" name="location" class="form-control" id="location" disabled readonly />
-                <span class="text-danger"></span>
-            </div>
-            <div class="form-group mb-3">
-                <i class="bi bi-people-fill mx-1"></i>
-                <label class="control-label">{{ 'EXPENSES.MODAL.PARTICIPANTS_LABEL' | translate }}</label>
-                <input [(ngModel)]="participants" name="participants" class="form-control" id="participants" disabled readonly />
-                <span class="text-danger"></span>
-            </div>
-            <div class="form-group mb-3">
-                <i class="bi bi-cash-stack mx-1"></i>
-                <label class="control-label">{{ 'EXPENSES.MODAL.TOTAL_SUM_LABEL' | translate }}</label>
-                <input [value]="totalSum | currency:'UAH':'₴'" class="form-control" disabled readonly />
-            </div>
-            <div class="form-group mb-3">
-                <i class="bi bi-person-fill mx-1"></i>
-                <label class="control-label">{{ 'EXPENSES.MODAL.SHARE_USER_LABEL' | translate }}<span class="text-danger">*</span></label>
-                <input [(ngModel)]="newUserWithAccess" name="newUserWithAccess" class="form-control" [class.is-invalid]="formErrors['newUserWithAccess']" [class.is-valid]="formValidated && !formErrors['newUserWithAccess'] && newUserWithAccess.trim()" id="newUserWithAccess" required/>
-                <div class="invalid-feedback" *ngIf="formErrors['newUserWithAccess']">{{ formErrors['newUserWithAccess'] }}</div>
-            </div>
-            <button type="button" value="Share" class="btn btn-primary" (click)="shareDayExpenses()">
-                <i class="bi bi-share me-1"></i>{{ 'EXPENSES.MODAL.SHARE_BUTTON' | translate }}
-            </button>
-        </form>
-    </div>
-</app-modal-window>

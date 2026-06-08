@@ -35,3 +35,45 @@
   background-color: #1f429d !important;
   color: white;
 }
+
+/* Component-specific responsive styles */
+@media (max-width: 576px) {
+  /* Back button sizing */
+  #backButton {
+    padding: 0.25rem 0.5rem !important;
+  }
+
+  #backButton i {
+    transform: scaleX(1.2) !important;
+  }
+
+  /* Reduce title size */
+  h4 {
+    font-size: 0.9rem !important;
+  }
+
+  /* Reduce no data text size for small screens */
+  .no-data-section h2 {
+    font-size: 1.25rem !important;
+  }
+
+  .no-data-section h5 {
+    font-size: 0.85rem !important;
+  }
+
+  /* Reduce tab button text size */
+  .tab-btn {
+    font-size: 0.75rem !important;
+    padding: 0.5rem 0.75rem !important;
+  }
+
+  /* Reduce content text sizes */
+  .tab-content {
+    font-size: 0.85rem !important;
+  }
+
+  /* Reduce icon sizes */
+  .bi {
+    font-size: 0.9rem !important;
+  }
+}

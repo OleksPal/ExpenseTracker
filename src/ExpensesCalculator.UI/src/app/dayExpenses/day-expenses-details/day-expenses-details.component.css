@@ -101,3 +101,31 @@
     align-items: center;
     justify-content: center;
 }
+
+/* Responsive card sizing for small screens */
+@media (max-width: 576px) {
+    /* Back button sizing */
+    #backButton {
+        padding: 0.25rem 0.5rem !important;
+    }
+
+    #backButton i {
+        transform: scaleX(1.2) !important;
+    }
+
+    .info-card {
+        padding: 0.75rem !important;
+    }
+
+    .info-card .text-white {
+        font-size: 0.75rem !important;
+    }
+
+    .info-card .h6 {
+        font-size: 0.85rem !important;
+    }
+
+    .info-card .fs-5 {
+        font-size: 0.9rem !important;
+    }
+}

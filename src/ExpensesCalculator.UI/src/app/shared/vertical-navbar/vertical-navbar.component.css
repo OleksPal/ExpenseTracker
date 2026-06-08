@@ -1,0 +1,59 @@
+/* Make menu flex container to push GitHub to bottom */
+#menu {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 100vh !important;
+}
+
+/* Reduce vertical navbar width on small screens */
+@media (max-width: 576px) {
+    /* Make the container narrower */
+    .d-flex.flex-column {
+        width: 50px;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    /* Reduce icon size */
+    .nav-item.fs-5 {
+        font-size: 1rem !important;
+    }
+
+    /* Center icons and reduce spacing */
+    .nav-link {
+        padding: 0.5rem 0 !important;
+        text-align: center;
+        justify-content: center;
+    }
+
+    /* Reduce spacing between items */
+    .nav-pills .nav-item {
+        margin-bottom: 0.15rem;
+    }
+
+    /* Adjust title icon and align with horizontal navbar */
+    .bi-calculator {
+        font-size: 1.2rem;
+    }
+
+    .nav-item.fs-5:first-child {
+        margin-top: 0.5rem;
+    }
+
+    /* Align hr with horizontal navbar */
+    hr {
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Center all content */
+    #menu {
+        align-items: center !important;
+        width: 100%;
+    }
+
+    /* Reduce bottom icon spacing */
+    .fixed-bottom {
+        text-align: center;
+    }
+}

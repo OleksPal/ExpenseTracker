@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { VerticalNavbarComponent } from "./shared/vertical-navbar/vertical-navbar.component";
 import { HorizontalNavbarComponent } from './shared/horizontal-navbar/horizontal-navbar.component';
 import { ToastComponent } from './shared/toast/toast.component';
+import { ModalWindowComponent } from './shared/modal-window/modal-window.component';
 import { RouterOutlet } from "@angular/router";
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
@@ -11,7 +12,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
   standalone: true,
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
-  imports: [VerticalNavbarComponent, HorizontalNavbarComponent, ToastComponent, RouterOutlet, TranslatePipe]
+  imports: [VerticalNavbarComponent, HorizontalNavbarComponent, ToastComponent, ModalWindowComponent, RouterOutlet, TranslatePipe]
 })
 export class AppComponent {
   title = 'Expenses Calculator';

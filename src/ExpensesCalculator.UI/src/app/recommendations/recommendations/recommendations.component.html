@@ -1,57 +1,164 @@
 <tour-step-template></tour-step-template>
 
-<div class="rounded my-4 ms-sm-4 me-sm-4 dark-blue-1">
+<div class="rounded my-4 mx-3 ms-sm-4 me-sm-4 dark-blue-1">
     <div class="container-fluid px-3 pt-2 text-white">
         <!-- Title with Loading Indicator -->
-        <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center justify-content-between mb-3 mb-md-0">
             <div class="d-flex align-items-center gap-2">
-                <h4 class="mt-1 mb-4">
+                <h4 class="mt-1 mb-0 mb-md-4">
                     <i class="bi bi-lightbulb me-1"></i>{{ 'SIDEBAR.RECOMMENDATIONS' | translate }}
                 </h4>
-                <button *ngIf="!isLoading" class="btn btn-sm btn-outline-primary text-white mb-3" (click)="startTour()" title="Start tour">
+                <button *ngIf="!isLoading" class="btn btn-sm btn-outline-primary text-white mb-0 mb-md-4" (click)="startTour()" title="Start tour">
                     <i class="bi bi-question-circle"></i>
                 </button>
             </div>
             <div *ngIf="isLoading" class="spinner-border" role="status"></div>
         </div>
 
-        <!-- Tag Filter Section and Filter/Sort Controls -->
-        <div class="d-flex justify-content-between align-items-end mb-3">
-            <!-- Tag Filter Group -->
-            <div class="d-flex flex-column" tourAnchor="tag-filter">
-                <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
-                    <i class="bi bi-tags me-1"></i>{{ 'ITEMS.FILTER.TAG_FILTER' | translate }}
-                </small>
-                <div class="position-relative" style="width: 400px;">
-                    <div class="input-group">
-                        <span class="input-group-text bi bi-tags bg-transparent text-white border-primary"></span>
-                        <input [(ngModel)]="tagFilterInput" name="tagFilterInput"
-                            class="form-control bg-transparent text-white border-primary"
-                            [placeholder]="'ITEMS.TAG_FILTER_PLACEHOLDER' | translate" (input)="onTagInputChange()"
-                            (keydown.enter)="addFilterTag(); $event.preventDefault()" [disabled]="isLoading" />
-                        <button type="button" class="btn btn-outline-primary text-white" (click)="addFilterTag()"
-                            [disabled]="isLoading">
-                            <i class="bi bi-plus"></i>
-                        </button>
+        <!-- Add Button -->
+        <button class="btn btn-outline-primary text-white mb-3" (click)="openModal('add')" [disabled]="isLoading" tourAnchor="add-item-btn">
+            <i class="bi bi-plus-circle me-1"></i>{{ 'ITEMS.ADD' | translate }}
+        </button>
+
+        <!-- Filter/Sort Controls for Large Screens -->
+        <div class="d-none d-lg-flex justify-content-end pb-2">
+            <div class="col-12">
+                <div class="d-flex flex-column flex-lg-row gap-2 align-items-stretch align-items-lg-end justify-content-lg-between px-0">
+                    <!-- Tag Filter Group -->
+                    <div class="d-flex flex-column" style="flex: 0 0 auto; max-width: 100%;" tourAnchor="tag-filter">
+                        <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
+                            <i class="bi bi-tags me-1"></i>{{ 'ITEMS.FILTER.TAG_FILTER' | translate }}
+                        </small>
+                        <div class="position-relative" style="min-width: 300px;">
+                            <div class="input-group">
+                                <span class="input-group-text bi bi-tags bg-transparent text-white border-primary"></span>
+                                <input [(ngModel)]="tagFilterInput" name="tagFilterInput"
+                                    class="form-control bg-transparent text-white border-primary"
+                                    [placeholder]="'ITEMS.TAG_FILTER_PLACEHOLDER' | translate" (input)="onTagInputChange()"
+                                    (keydown.enter)="addFilterTag(); $event.preventDefault()" [disabled]="isLoading" />
+                                <button type="button" class="btn btn-outline-primary text-white" (click)="addFilterTag()"
+                                    [disabled]="isLoading">
+                                    <i class="bi bi-plus"></i>
+                                </button>
+                            </div>
+                            <!-- Tag Suggestions Dropdown -->
+                            <div *ngIf="showTagSuggestions" class="position-absolute w-100 mt-1" style="z-index: 1000;">
+                                <ul class="list-group">
+                                    <li *ngFor="let tag of filteredTagSuggestions"
+                                        class="list-group-item list-group-item-action bg-dark text-white border-primary"
+                                        style="cursor: pointer;" (click)="selectTagSuggestion(tag)">
+                                        #{{ tag }}
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
-                    <!-- Tag Suggestions Dropdown -->
-                    <div *ngIf="showTagSuggestions" class="position-absolute w-100 mt-1" style="z-index: 1000;">
-                        <ul class="list-group">
-                            <li *ngFor="let tag of filteredTagSuggestions"
-                                class="list-group-item list-group-item-action bg-dark text-white border-primary"
-                                style="cursor: pointer;" (click)="selectTagSuggestion(tag)">
-                                #{{ tag }}
-                            </li>
-                        </ul>
+
+                    <!-- Search and Sort Group -->
+                    <div class="d-flex flex-column flex-lg-row gap-2 align-items-stretch">
+                        <!-- Filter Group -->
+                        <div class="d-flex flex-column" tourAnchor="search-filter">
+                            <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
+                                <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
+                            </small>
+                            <app-filter-bar [filterOptions]="filterOptions" [selectedCriteria]="filterCriteria"
+                                [filterText]="filterText" [placeholderKey]="'ITEMS.SEARCH'"
+                                (criteriaChange)="changeFilterCriteria($event)" (filterTextChange)="onFilterChange($event)">
+                            </app-filter-bar>
+                        </div>
+
+                        <!-- Sort Group -->
+                        <div class="d-flex flex-column" tourAnchor="sort-bar">
+                            <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
+                                <i class="bi bi-sort-down me-1"></i>{{ 'ITEMS.SORT.CAPTION' | translate }}
+                            </small>
+                            <app-sort-bar [sortOptions]="sortOptions" [selectedColumn]="sortColumn" [selectedOrder]="sortOrder"
+                                (sortChange)="onSortChange($event)">
+                            </app-sort-bar>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Search and Sort Group -->
-            <div class="d-flex gap-3 align-items-end">
-                <!-- Filter Group -->
-                <div class="d-flex flex-column" tourAnchor="search-filter">
-                    <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
+                <!-- Tag Badges Display (shown below all controls on large screens only) -->
+                <div *ngIf="filterTags.length > 0" class="mt-2 scrollbar-dark" style="max-height: 60px; overflow-x: auto; overflow-y: hidden; white-space: nowrap;">
+                    <span *ngFor="let tag of filterTags" class="badge border border-primary text-white fw-normal me-2 mb-2"
+                        style="font-size: 0.9rem; display: inline-block; cursor: pointer;">
+                        #{{ tag }}
+                        <i class="bi bi-x ms-1" (click)="removeFilterTag(tag)"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter/Sort Controls for Small Screens -->
+        <div class="d-flex d-lg-none flex-column gap-2">
+            <small class="text-white-50 d-block d-sm-none" style="font-size: 0.7rem;">
+                <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }} & <i class="bi bi-sort-down me-1"></i>{{ 'ITEMS.SORT.CAPTION' | translate }}
+            </small>
+            <div class="d-flex w-100 filter-sort-group" tourAnchor="filter-sort-controls">
+                <button class="btn btn-outline-primary text-white filter-btn"
+                        type="button"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#filterOffcanvas"
+                        aria-controls="filterOffcanvas">
+                    <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
+                </button>
+                <app-sort-bar [sortOptions]="sortOptions" [selectedColumn]="sortColumn" [selectedOrder]="sortOrder"
+                    (sortChange)="onSortChange($event)">
+                </app-sort-bar>
+            </div>
+        </div>
+
+        <!-- Offcanvas for filters on small screens -->
+        <div class="offcanvas offcanvas-end dark-blue-1 text-white" tabindex="-1" id="filterOffcanvas" aria-labelledby="filterOffcanvasLabel">
+            <div class="offcanvas-header border-bottom border-secondary">
+                <h5 class="offcanvas-title" id="filterOffcanvasLabel">
+                    <i class="bi bi-funnel me-2"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <!-- Tag Filter -->
+                <div class="mb-4">
+                    <small class="text-white-50 mb-2 d-block" style="font-size: 0.7rem;">
+                        <i class="bi bi-tags me-1"></i>{{ 'ITEMS.FILTER.TAG_FILTER' | translate }}
+                    </small>
+                    <div class="position-relative">
+                        <div class="input-group">
+                            <span class="input-group-text bi bi-tags bg-transparent text-white border-primary"></span>
+                            <input [(ngModel)]="tagFilterInput" name="tagFilterInputOffcanvas"
+                                class="form-control bg-transparent text-white border-primary"
+                                [placeholder]="'ITEMS.TAG_FILTER_PLACEHOLDER' | translate" (input)="onTagInputChange()"
+                                (keydown.enter)="addFilterTag(); $event.preventDefault()" [disabled]="isLoading" />
+                            <button type="button" class="btn btn-outline-primary text-white" (click)="addFilterTag()"
+                                [disabled]="isLoading">
+                                <i class="bi bi-plus"></i>
+                            </button>
+                        </div>
+                        <!-- Tag Suggestions Dropdown -->
+                        <div *ngIf="showTagSuggestions" class="position-absolute w-100 mt-1" style="z-index: 1000;">
+                            <ul class="list-group">
+                                <li *ngFor="let tag of filteredTagSuggestions"
+                                    class="list-group-item list-group-item-action bg-dark text-white border-primary"
+                                    style="cursor: pointer;" (click)="selectTagSuggestion(tag)">
+                                    #{{ tag }}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- Tag Badges Display -->
+                    <div *ngIf="filterTags.length > 0" class="mt-2 scrollbar-dark" style="max-height: 60px; overflow-x: auto; overflow-y: hidden; white-space: nowrap;">
+                        <span *ngFor="let tag of filterTags" class="badge border border-primary text-white fw-normal me-2 mb-2"
+                            style="font-size: 0.9rem; display: inline-block; cursor: pointer;">
+                            #{{ tag }}
+                            <i class="bi bi-x ms-1" (click)="removeFilterTag(tag)"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Search Filter -->
+                <div class="mb-4">
+                    <small class="text-white-50 mb-2 d-block" style="font-size: 0.7rem;">
                         <i class="bi bi-funnel me-1"></i>{{ 'ITEMS.FILTER.CAPTION' | translate }}
                     </small>
                     <app-filter-bar [filterOptions]="filterOptions" [selectedCriteria]="filterCriteria"
@@ -60,38 +167,25 @@
                     </app-filter-bar>
                 </div>
 
-                <!-- Sort Group -->
-                <div class="d-flex flex-column" tourAnchor="sort-bar">
-                    <small class="text-white-50 mb-1" style="font-size: 0.7rem;">
-                        <i class="bi bi-sort-down me-1"></i>{{ 'ITEMS.SORT.CAPTION' | translate }}
-                    </small>
-                    <app-sort-bar [sortOptions]="sortOptions" [selectedColumn]="sortColumn" [selectedOrder]="sortOrder"
-                        (sortChange)="onSortChange($event)">
-                    </app-sort-bar>
+                <!-- Checkbox -->
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="useOnlyMyItemsOffcanvas"
+                            [(ngModel)]="onlyMyItems" (change)="onOnlyMyItemsChange()">
+                        <label class="form-check-label text-white" for="useOnlyMyItemsOffcanvas">
+                            {{ 'ITEMS.USE_ONLY_MY_ITEMS' | translate }}
+                        </label>
+                    </div>
                 </div>
+
+                <button class="btn btn-primary w-100" type="button" data-bs-dismiss="offcanvas">
+                    {{ 'ITEMS.FILTER.APPLY' | translate }}
+                </button>
             </div>
         </div>
 
-        <!-- Add Button, Tag Badges and Checkbox in same row -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <!-- Add Button -->
-            <button class="btn btn-outline-primary text-white" (click)="openModal('add')" [disabled]="isLoading" tourAnchor="add-item-btn">
-                <i class="bi bi-plus-circle me-1"></i>{{ 'ITEMS.ADD' | translate }}
-            </button>
-
-            <!-- Tag Badges Display -->
-            <div class="flex-grow-1 mx-3">
-                <div *ngIf="filterTags.length > 0" class="scrollbar-dark"
-                    style="max-height: 60px; overflow-x: auto; overflow-y: hidden; white-space: nowrap;">
-                    <span *ngFor="let tag of filterTags" class="badge border border-primary text-white fw-normal me-2 mb-2"
-                        style="font-size: 0.9rem; display: inline-block; cursor: pointer;">
-                        #{{ tag }}
-                        <i class="bi bi-x ms-1" (click)="removeFilterTag(tag)"></i>
-                    </span>
-                </div>
-            </div>
-
-            <!-- Checkbox -->
+        <!-- Checkbox for Large Screens -->
+        <div class="d-none d-lg-flex justify-content-start justify-content-lg-end mt-2 mb-3">
             <div class="form-check text-nowrap" tourAnchor="only-my-items">
                 <input type="checkbox" class="form-check-input" id="useOnlyMyItems"
                     [(ngModel)]="onlyMyItems" (change)="onOnlyMyItemsChange()">
@@ -101,7 +195,14 @@
             </div>
         </div>
 
-        <hr class="w-100 my-3" style="border-color: #080f27; opacity: 1;" />
+        <hr class="w-100 mt-3 mb-1 mb-sm-3" style="border-color: #080f27; opacity: 1;" />
+
+        <!-- Data caption for small screens -->
+        <div *ngIf="itemsList.length > 0" class="d-block d-sm-none mb-2">
+            <small class="text-white-50" style="font-size: 0.7rem;">
+                <i class="bi bi-table me-1"></i>{{ 'ITEMS.DATA' | translate }}
+            </small>
+        </div>
 
         <!-- No Items Message -->
         <div *ngIf="!isLoading && itemsList.length === 0" class="text-white text-center py-4">
@@ -116,10 +217,10 @@
 
         <!-- Items Cards with Pagination -->
         <div *ngIf="filteredItemsList.length > 0" class="d-flex align-items-center">
-            <!-- Previous Button -->
-            <button *ngIf="totalPages > 1" class="btn btn-outline-primary text-white me-1" (click)="goToPreviousPage()"
-                [disabled]="currentPage === 1"
-                style="width: 20px; height: 60px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0;">
+            <!-- Previous Button (Desktop only) -->
+            <button *ngIf="totalPages > 1" class="btn btn-outline-primary text-white me-1 d-none d-md-flex"
+                (click)="goToPreviousPage()" [disabled]="currentPage === 1"
+                style="width: 20px; height: 60px; align-items: center; justify-content: center; flex-shrink: 0; padding: 0;">
                 <i class="bi bi-chevron-left"></i>
             </button>
 
@@ -137,9 +238,10 @@
                                     <i class="bi bi-box-seam"></i>
                                     {{ item.name || '-' }}
                                 </h5>
+                                <!-- Desktop buttons (top-right) -->
                                 <!-- Edit and Delete buttons for editable items -->
-                                <div *ngIf="item.canEdit" class="d-flex gap-1" (click)="$event.stopPropagation()">
-                                    <button class="btn btn-outline-warning text-white btn-action-edit" type="button"
+                                <div *ngIf="item.canEdit" class="d-none d-md-flex gap-1" (click)="$event.stopPropagation()">
+                                    <button class="btn btn-outline-primary text-white btn-action-edit" type="button"
                                         (click)="openModal('edit', item.id)"
                                         style="padding: 0; font-size: 0.85rem; width: 1.5rem; height: 1.5rem; line-height: 1; display: flex; align-items: center; justify-content: center;">
                                         <i class="bi bi-pencil"></i>
@@ -150,27 +252,19 @@
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
-                                <!-- Navigation button for other items -->
+                                <!-- Navigation button for other items - desktop only -->
                                 <a *ngIf="!item.canEdit && item.dayExpensesId && item.dayExpensesId !== '00000000-0000-0000-0000-000000000000'"
                                     [routerLink]="['/day-expenses-details', item.dayExpensesId]"
                                     [queryParams]="{ checkId: item.checkId, itemId: item.id }"
-                                    class="btn btn-outline-primary text-info"
+                                    class="btn btn-outline-primary text-info d-none d-md-flex"
                                     style="padding: 0; font-size: 0.85rem; width: 1.5rem; height: 1.5rem; line-height: 1; display: flex; align-items: center; justify-content: center;">
                                     <i class="bi bi-cloud-check"></i>
                                 </a>
                             </div>
 
-                            <div class="d-flex align-items-center justify-content-between my-2"
-                                style="font-size: 0.8rem;">
-                                <div>{{ item.price | currency:'UAH':'₴' }}</div>
-                                <div>×</div>
-                                <div><i class="bi bi-grid-fill me-1"></i>{{ item.amount }}</div>
-                                <div>=</div>
-                                <div>{{ getTotalPrice(item) | currency:'UAH':'₴' }}</div>
-                            </div>
-
-                            <div class="d-flex align-items-center justify-content-between mt-2 mb-0 flex-nowrap"
-                                style="font-size: 0.8rem;">
+                            <div class="d-flex align-items-center justify-content-between my-2 mb-0 flex-wrap"
+                                style="font-size: 0.8rem; gap: 0.5rem;">
+                                <div>{{ item.price | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate) }}</div>
                                 <div *ngIf="item.users && item.users.length > 0" style="white-space: nowrap;">
                                     <label class="mb-0" data-bs-toggle="tooltip" data-bs-placement="top"
                                         data-bs-html="true" data-bs-custom-class="custom-tooltip"
@@ -198,6 +292,27 @@
                                 style="min-height: 10px; font-size: 0.9rem; color: rgba(255, 255, 255, 0.5);">
                                 {{ 'ITEMS.NO_TAGS' | translate }}
                             </div>
+
+                            <!-- Mobile buttons (below tags) - only for editable items -->
+                            <div *ngIf="item.canEdit" class="d-flex d-md-none gap-2 mt-2" (click)="$event.stopPropagation()">
+                                <button class="btn btn-sm btn-outline-primary text-white flex-fill" type="button"
+                                    (click)="openModal('edit', item.id)">
+                                    <i class="bi bi-pencil me-1"></i>{{ 'ITEMS.MODAL.SAVE' | translate }}
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger text-white flex-fill" type="button"
+                                    (click)="openModal('delete', item.id)">
+                                    <i class="bi bi-trash me-1"></i>{{ 'ITEMS.MODAL.DELETE' | translate }}
+                                </button>
+                            </div>
+
+                            <!-- View in Expenses button (full width at bottom) - only on small screens -->
+                            <a *ngIf="!item.canEdit && item.dayExpensesId && item.dayExpensesId !== '00000000-0000-0000-0000-000000000000'"
+                                [routerLink]="['/day-expenses-details', item.dayExpensesId]"
+                                [queryParams]="{ checkId: item.checkId, itemId: item.id }"
+                                class="btn btn-sm btn-outline-primary text-info w-100 mt-2 d-block d-md-none"
+                                (click)="$event.stopPropagation()">
+                                <i class="bi bi-cloud-check me-1"></i>{{ 'ITEMS.VIEW_IN_EXPENSES' | translate }}
+                            </a>
                         </div>
                     </div>
                     <!-- Card with tour anchor (first item) -->
@@ -211,9 +326,10 @@
                                     <i class="bi bi-box-seam"></i>
                                     {{ item.name || '-' }}
                                 </h5>
+                                <!-- Desktop buttons (top-right) -->
                                 <!-- Edit and Delete buttons for editable items -->
-                                <div *ngIf="item.canEdit" class="d-flex gap-1" (click)="$event.stopPropagation()">
-                                    <button class="btn btn-outline-warning text-white btn-action-edit" type="button"
+                                <div *ngIf="item.canEdit" class="d-none d-md-flex gap-1" (click)="$event.stopPropagation()">
+                                    <button class="btn btn-outline-primary text-white btn-action-edit" type="button"
                                         (click)="openModal('edit', item.id)"
                                         style="padding: 0; font-size: 0.85rem; width: 1.5rem; height: 1.5rem; line-height: 1; display: flex; align-items: center; justify-content: center;">
                                         <i class="bi bi-pencil"></i>
@@ -224,27 +340,19 @@
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
-                                <!-- Navigation button for other items -->
+                                <!-- Navigation button for other items - desktop only -->
                                 <a *ngIf="!item.canEdit && item.dayExpensesId && item.dayExpensesId !== '00000000-0000-0000-0000-000000000000'"
                                     [routerLink]="['/day-expenses-details', item.dayExpensesId]"
                                     [queryParams]="{ checkId: item.checkId, itemId: item.id }"
-                                    class="btn btn-outline-primary text-info"
+                                    class="btn btn-outline-primary text-info d-none d-md-flex"
                                     style="padding: 0; font-size: 0.85rem; width: 1.5rem; height: 1.5rem; line-height: 1; display: flex; align-items: center; justify-content: center;">
                                     <i class="bi bi-cloud-check"></i>
                                 </a>
                             </div>
 
-                            <div class="d-flex align-items-center justify-content-between my-2"
-                                style="font-size: 0.8rem;">
-                                <div>{{ item.price | currency:'UAH':'₴' }}</div>
-                                <div>×</div>
-                                <div><i class="bi bi-grid-fill me-1"></i>{{ item.amount }}</div>
-                                <div>=</div>
-                                <div>{{ getTotalPrice(item) | currency:'UAH':'₴' }}</div>
-                            </div>
-
-                            <div class="d-flex align-items-center justify-content-between mt-2 mb-0 flex-nowrap"
-                                style="font-size: 0.8rem;">
+                            <div class="d-flex align-items-center justify-content-between my-2 mb-0 flex-wrap"
+                                style="font-size: 0.8rem; gap: 0.5rem;">
+                                <div>{{ item.price | currency:('GENERAL.CURRENCY_CODE' | translate):('GENERAL.CURRENCY_SYMBOL' | translate) }}</div>
                                 <div *ngIf="item.users && item.users.length > 0" style="white-space: nowrap;">
                                     <label class="mb-0" data-bs-toggle="tooltip" data-bs-placement="top"
                                         data-bs-html="true" data-bs-custom-class="custom-tooltip"
@@ -272,22 +380,56 @@
                                 style="min-height: 10px; font-size: 0.9rem; color: rgba(255, 255, 255, 0.5);">
                                 {{ 'ITEMS.NO_TAGS' | translate }}
                             </div>
+
+                            <!-- Mobile buttons (below tags) - only for editable items -->
+                            <div *ngIf="item.canEdit" class="d-flex d-md-none gap-2 mt-2" (click)="$event.stopPropagation()">
+                                <button class="btn btn-sm btn-outline-primary text-white flex-fill" type="button"
+                                    (click)="openModal('edit', item.id)">
+                                    <i class="bi bi-pencil me-1"></i>{{ 'ITEMS.MODAL.SAVE' | translate }}
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger text-white flex-fill" type="button"
+                                    (click)="openModal('delete', item.id)">
+                                    <i class="bi bi-trash me-1"></i>{{ 'ITEMS.MODAL.DELETE' | translate }}
+                                </button>
+                            </div>
+
+                            <!-- View in Expenses button (full width at bottom) - only on small screens -->
+                            <a *ngIf="!item.canEdit && item.dayExpensesId && item.dayExpensesId !== '00000000-0000-0000-0000-000000000000'"
+                                [routerLink]="['/day-expenses-details', item.dayExpensesId]"
+                                [queryParams]="{ checkId: item.checkId, itemId: item.id }"
+                                class="btn btn-sm btn-outline-primary text-info w-100 mt-2 d-block d-md-none"
+                                (click)="$event.stopPropagation()">
+                                <i class="bi bi-cloud-check me-1"></i>{{ 'ITEMS.VIEW_IN_EXPENSES' | translate }}
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Next Button -->
-            <button *ngIf="totalPages > 1" class="btn btn-outline-primary text-white ms-1" (click)="goToNextPage()"
-                [disabled]="currentPage === totalPages"
-                style="width: 20px; height: 60px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0;">
+            <!-- Next Button (Desktop only) -->
+            <button *ngIf="totalPages > 1" class="btn btn-outline-primary text-white ms-1 d-none d-md-flex"
+                (click)="goToNextPage()" [disabled]="currentPage === totalPages"
+                style="width: 20px; height: 60px; align-items: center; justify-content: center; flex-shrink: 0; padding: 0;">
                 <i class="bi bi-chevron-right"></i>
             </button>
         </div>
 
+        <!-- Pagination buttons for small screens -->
+        <div *ngIf="filteredItemsList.length > 0 && totalPages > 1" class="d-flex d-md-none justify-content-center mt-3 mb-2">
+            <div class="btn-group" role="group">
+                <button class="btn btn-outline-primary text-white" (click)="goToPreviousPage()"
+                    [disabled]="currentPage === 1" style="min-width: 120px; font-size: 1.8rem;">
+                    <i class="bi bi-arrow-left" style="display: inline-block; transform: scaleX(2.5);"></i>
+                </button>
+                <button class="btn btn-outline-primary text-white" (click)="goToNextPage()"
+                    [disabled]="currentPage === totalPages" style="min-width: 120px; font-size: 1.8rem;">
+                    <i class="bi bi-arrow-right" style="display: inline-block; transform: scaleX(2.5);"></i>
+                </button>
+            </div>
+        </div>
+
         <!-- Items count -->
         <div *ngIf="totalCount > 0">
-            <hr class="w-100 my-0" style="border-color: #080f27; opacity: 1;" />
             <div class="pagination-info ms-3 my-3 pb-3 text-white">
                 {{ 'ITEMS.SHOWING' | translate }} {{ paginationStartIndex }} {{ 'ITEMS.TO' | translate }} {{
                 paginationEndIndex }} {{ 'ITEMS.OF' | translate }} {{ totalCount }}
@@ -295,269 +437,3 @@
         </div>
     </div>
 </div>
-
-<!-- Modal Window -->
-<app-modal-window [modalId]="'recommendationsModal'" [modalTitle]="modalTitle"
-    [currentModalContent]="currentModalContent" [modalSize]="'lg'">
-    <div class="modal-header py-2 bg-dark text-white border-secondary">
-        <h5 class="modal-title">{{ modalTitle }}</h5>
-        <button type="button" class="btn-close btn-close-white" (click)="hideModal()" aria-label="Close"></button>
-    </div>
-    <div class="modal-body bg-dark text-white" style="overflow: visible;">
-        <!-- Add Form -->
-        <form *ngIf="currentModalContent === 'add'">
-            <div class="alert alert-info p-2 mb-3" style="font-size: 0.9rem;">
-                <i class="bi bi-info-circle me-2"></i>{{ 'ITEMS.MODAL.RECOMMENDATIONS_INFO' | translate }}
-            </div>
-            <div class="form-group mb-2">
-                <div class="d-flex justify-content-between align-items-center">
-                    <label class="control-label mb-0"><i class="bi bi-box-seam me-1"></i>{{ 'ITEMS.MODAL.NAME' |
-                        translate }}<span class="text-danger">*</span></label>
-                    <small class="text-white" style="font-size: 0.75rem;">{{ name.length }}/20</small>
-                </div>
-                <input [(ngModel)]="name" name="name" class="form-control" [class.is-invalid]="formErrors['name']"
-                    [class.is-valid]="formValidated && !formErrors['name'] && name.trim()" maxlength="20" required />
-                <div class="invalid-feedback" *ngIf="formErrors['name']">{{ formErrors['name'] }}</div>
-            </div>
-            <div class="form-group mb-2">
-                <div class="d-flex justify-content-between align-items-center">
-                    <label class="control-label mb-0"><i class="bi bi-chat-text me-1"></i>{{ 'ITEMS.MODAL.COMMENT' | translate }}</label>
-                    <small class="text-white" style="font-size: 0.75rem;">{{ comment.length }}/120</small>
-                </div>
-                <textarea [(ngModel)]="comment" name="comment" class="form-control" rows="3" maxlength="120"
-                    style="resize: none;"></textarea>
-            </div>
-            <div class="row mb-2">
-                <div class="col-3">
-                    <div class="form-group">
-                        <i class="bi bi-currency-dollar mx-1"></i>
-                        <label class="control-label">{{ 'ITEMS.MODAL.PRICE' | translate }}<span
-                                class="text-danger">*</span></label>
-                        <input type="number" [(ngModel)]="price" name="price" class="form-control" step="0.01" min="0"
-                            [class.is-invalid]="formErrors['price']"
-                            [class.is-valid]="formValidated && !formErrors['price'] && price > 0" required />
-                        <div class="invalid-feedback" *ngIf="formErrors['price']">{{ formErrors['price'] }}</div>
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="form-group">
-                        <i class="bi bi-grid-fill mx-1"></i>
-                        <label class="control-label">{{ 'ITEMS.MODAL.AMOUNT' | translate }}<span
-                                class="text-danger">*</span></label>
-                        <input type="number" [(ngModel)]="amount" name="amount" class="form-control" min="1"
-                            [class.is-invalid]="formErrors['amount']"
-                            [class.is-valid]="formValidated && !formErrors['amount'] && amount > 0" required />
-                        <div class="invalid-feedback" *ngIf="formErrors['amount']">{{ formErrors['amount'] }}</div>
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="form-group">
-                        <i class="bi bi-star-fill mx-1"></i>
-                        <label class="control-label mb-0">{{ 'ITEMS.MODAL.RATING' | translate }}<span
-                                class="text-danger">*</span></label>
-                        <div class="d-flex align-items-center" style="padding-top: 0.3rem;">
-                            <div class="star-rating d-flex justify-content-between"
-                                style="flex: 1; margin-right: 0.5rem;">
-                                <i *ngFor="let star of [1,2,3,4,5,6,7,8,9,10]"
-                                    [class]="star <= (hoverRating || rating) ? 'bi bi-star-fill' : 'bi bi-star'"
-                                    (mouseenter)="hoverRating = star" (mouseleave)="hoverRating = 0"
-                                    (click)="setRating(star)"
-                                    style="cursor: pointer; font-size: 1.2rem; color: #ffc107;"></i>
-                            </div>
-                            <span class="text-white text-nowrap"
-                                style="min-width: 50px; text-align: right; display: inline-block;">{{ (hoverRating ||
-                                rating) }}/10</span>
-                        </div>
-                        <div class="invalid-feedback d-block" *ngIf="formErrors['rating']">{{ formErrors['rating'] }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="form-group mb-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <label class="control-label fw-normal mb-0"><i class="bi bi-tags me-1"></i>{{ 'ITEMS.MODAL.TAGS' |
-                        translate }}</label>
-                    <small class="text-white" style="font-size: 0.75rem;">{{ tags.length }}/5</small>
-                </div>
-                <div class="input-group border-secondary mb-2">
-                    <input [(ngModel)]="tagInput" name="tagInput" class="form-control"
-                        [placeholder]="'ITEMS.MODAL.TAG_PLACEHOLDER' | translate" [disabled]="tags.length >= 5"
-                        maxlength="15" (keydown.enter)="addTag(); $event.preventDefault()" />
-                    <button type="button" class="btn bg-white text-dark border border-dark" (click)="addTag()"
-                        [disabled]="tags.length >= 5">
-                        <i class="bi bi-plus"></i>
-                    </button>
-                </div>
-                <div class="mt-1" style="max-height: 75px; overflow-x: auto; overflow-y: hidden; white-space: nowrap;"
-                    *ngIf="tags.length > 0">
-                    <span *ngFor="let tag of tags" class="badge border border-light text-white fw-normal me-2 mb-1"
-                        style="font-size: 0.85rem; display: inline-block;">
-                        #{{ tag }}
-                        <i class="bi bi-x ms-1" style="cursor: pointer;" (click)="removeTag(tag)"></i>
-                    </span>
-                </div>
-            </div>
-            <button type="button" class="btn btn-success" (click)="createItem()">
-                <i class="bi bi-plus-circle me-1"></i>{{ 'ITEMS.MODAL.ADD' | translate }}
-            </button>
-        </form>
-
-        <!-- Edit Form -->
-        <form *ngIf="currentModalContent === 'edit'">
-            <div class="form-group mb-2">
-                <div class="d-flex justify-content-between align-items-center">
-                    <label class="control-label mb-0"><i class="bi bi-box-seam me-1"></i>{{ 'ITEMS.MODAL.NAME' |
-                        translate }}<span class="text-danger">*</span></label>
-                    <small class="text-white" style="font-size: 0.75rem;">{{ name.length }}/20</small>
-                </div>
-                <input [(ngModel)]="name" name="name" class="form-control" [class.is-invalid]="formErrors['name']"
-                    [class.is-valid]="formValidated && !formErrors['name'] && name.trim()" maxlength="20" required />
-                <div class="invalid-feedback" *ngIf="formErrors['name']">{{ formErrors['name'] }}</div>
-            </div>
-            <div class="form-group mb-2">
-                <div class="d-flex justify-content-between align-items-center">
-                    <label class="control-label mb-0"><i class="bi bi-chat-text me-1"></i>{{ 'ITEMS.MODAL.COMMENT' |
-                        translate }}</label>
-                    <small class="text-white" style="font-size: 0.75rem;">{{ comment.length }}/120</small>
-                </div>
-                <textarea [(ngModel)]="comment" name="comment" class="form-control" rows="3" maxlength="120"
-                    style="resize: none;"></textarea>
-            </div>
-            <div class="row mb-2">
-                <div class="col-3">
-                    <div class="form-group">
-                        <i class="bi bi-currency-dollar mx-1"></i>
-                        <label class="control-label">{{ 'ITEMS.MODAL.PRICE' | translate }}<span
-                                class="text-danger">*</span></label>
-                        <input type="number" [(ngModel)]="price" name="price" class="form-control" step="0.01" min="0"
-                            [class.is-invalid]="formErrors['price']"
-                            [class.is-valid]="formValidated && !formErrors['price'] && price > 0" required />
-                        <div class="invalid-feedback" *ngIf="formErrors['price']">{{ formErrors['price'] }}</div>
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="form-group">
-                        <i class="bi bi-grid-fill mx-1"></i>
-                        <label class="control-label">{{ 'ITEMS.MODAL.AMOUNT' | translate }}<span
-                                class="text-danger">*</span></label>
-                        <input type="number" [(ngModel)]="amount" name="amount" class="form-control" min="1"
-                            [class.is-invalid]="formErrors['amount']"
-                            [class.is-valid]="formValidated && !formErrors['amount'] && amount > 0" required />
-                        <div class="invalid-feedback" *ngIf="formErrors['amount']">{{ formErrors['amount'] }}</div>
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="form-group">
-                        <i class="bi bi-star-fill mx-1"></i>
-                        <label class="control-label mb-0">{{ 'ITEMS.MODAL.RATING' | translate }}<span
-                                class="text-danger">*</span></label>
-                        <div class="d-flex align-items-center" style="padding-top: 0.3rem;">
-                            <div class="star-rating d-flex justify-content-between"
-                                style="flex: 1; margin-right: 0.5rem;">
-                                <i *ngFor="let star of [1,2,3,4,5,6,7,8,9,10]"
-                                    [class]="star <= (hoverRating || rating) ? 'bi bi-star-fill' : 'bi bi-star'"
-                                    (mouseenter)="hoverRating = star" (mouseleave)="hoverRating = 0"
-                                    (click)="setRating(star)"
-                                    style="cursor: pointer; font-size: 1.2rem; color: #ffc107;"></i>
-                            </div>
-                            <span class="text-white text-nowrap"
-                                style="min-width: 50px; text-align: right; display: inline-block;">{{ (hoverRating ||
-                                rating) }}/10</span>
-                        </div>
-                        <div class="invalid-feedback d-block" *ngIf="formErrors['rating']">{{ formErrors['rating'] }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="form-group mb-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <label class="control-label fw-normal mb-0"><i class="bi bi-tags me-1"></i>{{ 'ITEMS.MODAL.TAGS' |
-                        translate }}</label>
-                    <small class="text-white" style="font-size: 0.75rem;">{{ tags.length }}/5</small>
-                </div>
-                <div class="input-group border-secondary mb-2">
-                    <input [(ngModel)]="tagInput" name="tagInput" class="form-control"
-                        [placeholder]="'ITEMS.MODAL.TAG_PLACEHOLDER' | translate" [disabled]="tags.length >= 5"
-                        maxlength="15" (keydown.enter)="addTag(); $event.preventDefault()" />
-                    <button type="button" class="btn bg-white text-dark border border-dark" (click)="addTag()"
-                        [disabled]="tags.length >= 5">
-                        <i class="bi bi-plus"></i>
-                    </button>
-                </div>
-                <div class="mt-1" style="max-height: 75px; overflow-x: auto; overflow-y: hidden; white-space: nowrap;"
-                    *ngIf="tags.length > 0">
-                    <span *ngFor="let tag of tags" class="badge border border-light text-white fw-normal me-2 mb-1"
-                        style="font-size: 0.85rem; display: inline-block;">
-                        #{{ tag }}
-                        <i class="bi bi-x ms-1" style="cursor: pointer;" (click)="removeTag(tag)"></i>
-                    </span>
-                </div>
-            </div>
-            <button type="button" class="btn btn-warning" (click)="editItem()">
-                <i class="bi bi-pencil me-1"></i>{{ 'ITEMS.MODAL.SAVE' | translate }}
-            </button>
-        </form>
-
-        <!-- Delete Confirmation -->
-        <div *ngIf="currentModalContent === 'delete'">
-            <div class="form-group mb-3">
-                <i class="bi bi-box-seam mx-1"></i>
-                <label class="control-label">{{ 'ITEMS.MODAL.NAME' | translate }}</label>
-                <input [value]="name" class="form-control" disabled />
-            </div>
-            <div class="form-group mb-3">
-                <i class="bi bi-chat-text mx-1"></i>
-                <label class="control-label">{{ 'ITEMS.MODAL.COMMENT' | translate }}</label>
-                <textarea [value]="comment" class="form-control" rows="3" disabled></textarea>
-            </div>
-            <div class="row mb-3">
-                <div class="col-3">
-                    <div class="form-group">
-                        <i class="bi bi-currency-dollar mx-1"></i>
-                        <label class="control-label">{{ 'ITEMS.MODAL.PRICE' | translate }}</label>
-                        <input type="number" [value]="price" class="form-control" disabled />
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="form-group">
-                        <i class="bi bi-grid-fill mx-1"></i>
-                        <label class="control-label">{{ 'ITEMS.MODAL.AMOUNT' | translate }}</label>
-                        <input type="number" [value]="amount" class="form-control" disabled />
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="form-group">
-                        <i class="bi bi-star-fill mx-1"></i>
-                        <label class="control-label mb-0">{{ 'ITEMS.MODAL.RATING' | translate }}</label>
-                        <div class="d-flex align-items-center" style="padding-top: 0.3rem;">
-                            <div class="star-rating d-flex justify-content-between"
-                                style="flex: 1; margin-right: 0.5rem;">
-                                <i *ngFor="let star of [1,2,3,4,5,6,7,8,9,10]"
-                                    [class]="star <= rating ? 'bi bi-star-fill' : 'bi bi-star'"
-                                    style="font-size: 1.2rem; color: #ffc107;"></i>
-                            </div>
-                            <span class="text-white text-nowrap"
-                                style="min-width: 50px; text-align: right; display: inline-block;">{{ rating
-                                }}/10</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="form-group mb-3" *ngIf="tags.length > 0">
-                <i class="bi bi-tags mx-1"></i>
-                <label class="control-label fw-normal">{{ 'ITEMS.MODAL.TAGS' | translate }}</label>
-                <div class="mt-2">
-                    <span *ngFor="let tag of tags"
-                        class="badge border border-secondary text-secondary fw-normal me-2 mb-2"
-                        style="font-size: 0.9rem;">
-                        #{{ tag }}
-                    </span>
-                </div>
-            </div>
-            <button type="button" class="btn btn-danger" (click)="deleteItem()">
-                <i class="bi bi-trash me-1"></i>{{ 'ITEMS.MODAL.DELETE' | translate }}
-            </button>
-        </div>
-
-    </div>
-</app-modal-window>

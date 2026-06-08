@@ -1,4 +1,8 @@
 {
+  "GENERAL": {
+    "CURRENCY_SYMBOL": "$",
+    "CURRENCY_CODE": "USD"
+  },
   "NAV": {
     "LOGIN": "Login",
     "REGISTER": "Register",
@@ -13,7 +17,7 @@
     "GITHUB": "Github"
   },
   "HOME": {
-    "COPYRIGHT": "© 2024-2026 ExpensesCalculator"
+    "COPYRIGHT": "© 2024-2026 ExpensesTracker"
   },
   "LOGIN": {
     "TITLE": "Log in",
@@ -154,9 +158,9 @@
       "PAYER_LABEL": "Payer",
       "SELECT_PAYER": "Select Payer",
       "SUM_LABEL": "Total Sum",
-      "ADD_BUTTON": "Add Check",
-      "EDIT_BUTTON": "Edit Check",
-      "DELETE_BUTTON": "Delete Check"
+      "ADD_BUTTON": "Add",
+      "EDIT_BUTTON": "Edit",
+      "DELETE_BUTTON": "Delete"
     },
     "TOAST": {
       "SUCCESS": "Success!",
@@ -189,6 +193,7 @@
     "PERSON": "person",
     "PEOPLE": "people",
     "NO_TAGS": "No tags",
+    "VIEW_IN_EXPENSES": "View in Expenses",
     "SHOWING": "Showing items from",
     "TO": "to",
     "OF": "of",
@@ -203,7 +208,8 @@
       "TOTAL_SUM": "Total Sum",
       "USER_COUNT": "User Count",
       "RATING": "Rating",
-      "TAGS": "Tags"
+      "TAGS": "Tags",
+      "APPLY": "Apply"
     },
     "SORT": {
       "CAPTION": "Sort",
@@ -254,8 +260,8 @@
     },
     "VALIDATION": {
       "NAME_REQUIRED": "Item name is required.",
-      "PRICE_INVALID": "Price > 0",
-      "AMOUNT_INVALID": "Amount > 0",
+      "PRICE_INVALID": "Price > 0 & <= 10000",
+      "AMOUNT_INVALID": "Amount > 0 & <= 1000",
       "RATING_REQUIRED": "Rating is required.",
       "USERS_REQUIRED": "At least one user is required."
     },
@@ -287,8 +293,15 @@
     "EXPENSES_TABLE_CONTENT": "This table shows the expenses. Click on any column header to sort your expenses by that field. The table below displays all expense rows, which you can double-click to view details.",
     "ACTIONS_MENU_TITLE": "Actions Menu",
     "ACTIONS_MENU_CONTENT": "Click the three dots button to access actions for each expense. You can open details, calculate expenses, edit, share with other users, or delete the expense entry.",
+    "SORT_CONTROLS_TITLE": "Sort Controls",
+    "SORT_CONTROLS_CONTENT": "Use these buttons to sort your expenses. Click any button to sort by that field (Date, Location, Participants, or Total Sum). Click again to toggle between ascending and descending order.",
+    "EXPENSES_ACCORDION_TITLE": "Expenses List",
+    "EXPENSES_ACCORDION_CONTENT": "This accordion shows all your expenses. Each row displays the date and location. Click the arrow to expand and view participants, total sum, and action buttons to manage the expense.",
     "PAGINATION_TITLE": "Pagination Controls",
-    "PAGINATION_CONTENT": "Navigate through your expenses with these controls. Change the number of items displayed per page using the dropdown on the right."
+    "PAGINATION_CONTENT": "Navigate through your expenses with these controls. Change the number of items displayed per page using the dropdown on the right.",
+    "PREV_BTN": "Previous",
+    "NEXT_BTN": "Next",
+    "END_BTN": "End tour"
   },
   "TOUR_DETAILS": {
     "BACK_BTN_TITLE": "Back to List",
@@ -300,7 +313,15 @@
     "ADD_ITEM_TITLE": "Add Item",
     "ADD_ITEM_CONTENT": "Click this button to add items to the check. Specify the item name, price, quantity, and select which participants consumed it. The check total will update automatically.",
     "CALCULATOR_TITLE": "Calculate Expenses",
-    "CALCULATOR_CONTENT": "Once you've added all checks and items, click this button to view the calculations showing how expenses are split among participants."
+    "CALCULATOR_CONTENT": "Once you've added all checks and items, click this button to view the calculations showing how expenses are split among participants.",
+    "FILTER_SORT_CONTROLS_TITLE": "Filter & Sort",
+    "FILTER_SORT_CONTROLS_CONTENT": "Use these controls to filter and sort your checks. The filter button lets you search by location, payer, or sum, while the sort dropdown helps organize checks by different criteria.",
+    "CHECKS_ACCORDION_TITLE": "Checks List",
+    "CHECKS_ACCORDION_CONTENT": "This shows all your checks in an accordion format optimized for mobile. Each check displays the location and total sum. Tap any check to expand it and view its items.",
+    "ACCORDION_CHECK_ITEM_TITLE": "Check Details",
+    "ACCORDION_CHECK_ITEM_CONTENT": "Tap the check header to expand or collapse it. When expanded, you can view the payer information, edit or delete the check, and see all items belonging to this check.",
+    "ACTIONS_MENU_TITLE": "Actions Menu",
+    "ACTIONS_MENU_CONTENT": "Click the three-dot menu to access additional actions for this expense entry, including edit, share, and delete options."
   },
   "TOUR_CALCULATIONS": {
     "BACK_BTN_TITLE": "Back to Details",
@@ -317,6 +338,8 @@
     "SEARCH_FILTER_CONTENT": "Search your items by different criteria. Use the dropdown to switch between filtering by name, description, price, amount, total sum, user count, or rating. Type in the search box to find specific items.",
     "SORT_BAR_TITLE": "Sort Options",
     "SORT_BAR_CONTENT": "Sort your items by different attributes. Click the dropdown to choose a column (name, price, amount, total price, user count, or rating) and toggle between ascending and descending order.",
+    "FILTER_SORT_CONTROLS_TITLE": "Filter & Sort",
+    "FILTER_SORT_CONTROLS_CONTENT": "Use the Filter button to search items, apply tag filters, and toggle showing only your items. Use the Sort dropdown to sort by name, price, amount, total price, user count, or rating.",
     "ADD_ITEM_TITLE": "Add New Item",
     "ADD_ITEM_CONTENT": "Click this button to add a new item to your recommendations. You can add items with name, description, price, amount, rating, and tags. These are your personal items that you can only access from this recommendations view.",
     "ONLY_MY_ITEMS_TITLE": "Filter Your Items",

@@ -1,26 +1,23 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, OnDestroy, AfterViewInit, SimpleChanges, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, OnDestroy, AfterViewInit, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { ModalWindowComponent } from '../../shared/modal-window/modal-window.component';
 import { SortBarComponent, SortOption } from '../../shared/sort-bar/sort-bar.component';
 import { FilterBarComponent, FilterOption } from '../../shared/filter-bar/filter-bar.component';
-import { ValidationErrors, parseValidationErrors } from '../../shared/models/validation-errors.model';
-import { ItemsService, Item, ItemResponse, DeleteItemResponse } from '../../services/items.service';
-import { DayExpensesTotalSumUpdateService } from '../../services/day-expenses-total-sum-update.service';
-import { ToastService } from '../../services/toast.service';
+import { ItemsService, Item } from '../../services/items.service';
+import { ModalService } from '../../services/modal.service';
 import { TooltipService } from '../../services/tooltip.service';
-import { FormValidationService } from '../../services/form-validation.service';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { TourAnchorNgBootstrapDirective } from 'ngx-ui-tour-ng-bootstrap';
-
-declare var bootstrap: any;
+import { ItemAddFormComponent } from '../../modals/item-form/item-add-form/item-add-form.component';
+import { ItemEditFormComponent } from '../../modals/item-form/item-edit-form/item-edit-form.component';
+import { ItemDeleteFormComponent } from '../../modals/item-form/item-delete-form/item-delete-form.component';
 
 @Component({
   selector: 'app-item-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalWindowComponent, SortBarComponent, FilterBarComponent, TranslatePipe, TourAnchorNgBootstrapDirective],
+  imports: [CommonModule, FormsModule, SortBarComponent, FilterBarComponent, TranslatePipe, TourAnchorNgBootstrapDirective],
   templateUrl: './item-list.component.html',
   styleUrl: './item-list.component.css'
 })
@@ -32,6 +29,7 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy, AfterVie
   @Input() isLoading?: boolean; // Optional: external loading state
   @Input() highlightedItemId?: string;
   @Input() disableTooltipManagement: boolean = false; // When true, parent handles tooltips
+  @Input() isFirstCheck: boolean = false; // Indicates if this is the first check (for tour anchor)
   @Output() checkSumUpdated = new EventEmitter<{ checkId: string, newSum: number }>();
   @Output() itemsChanged = new EventEmitter<string>(); // Emit when items are modified (checkId)
 
@@ -46,27 +44,6 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy, AfterVie
   currentPage = 1;
   itemsPerPage = 8;
   totalPages = 1;
-
-  // Modal properties
-  modalInstance: any;
-  currentModalContent: 'add' | 'edit' | 'delete' = 'add';
-  modalTitle: string = '';
-
-  // Form properties
-  id = '';
-  name = '';
-  comment = '';
-  price = 0;
-  amount = 1;
-  rating = 0;
-  hoverRating = 0;
-  tags: string[] = [];
-  tagInput = '';
-  selectedUsers: string[] = [];
-
-  // Validation properties
-  formErrors: ValidationErrors = {};
-  formValidated = false;
 
   // Filter and sort properties
   filterText = '';
@@ -103,15 +80,11 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy, AfterVie
   private filterTextSubject = new Subject<string>();
   private filterTextSubscription!: Subscription;
 
-  // Inject services using inject() for better SSR compatibility
-  private dayExpensesTotalSumUpdateService = inject(DayExpensesTotalSumUpdateService);
-
   constructor(
     private itemsService: ItemsService,
     private translate: TranslateService,
-    private toastService: ToastService,
-    private tooltipService: TooltipService,
-    private formValidationService: FormValidationService
+    private modalService: ModalService,
+    private tooltipService: TooltipService
   ) {}
 
   ngOnInit(): void {
@@ -122,6 +95,9 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy, AfterVie
     ).subscribe(() => {
       this.applyLocalFiltering();
     });
+
+    // Set items per page based on screen size
+    this.setItemsPerPageByScreenSize();
 
     // If items are provided, use them; otherwise load them
     if (this.items && this.items.length > 0) {
@@ -203,19 +179,6 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy, AfterVie
     });
   }
 
-  loadSingleItem(id: string): void {
-    const item = this.itemsList.find(i => i.id === id);
-    if (item) {
-      this.id = item.id;
-      this.name = item.name;
-      this.comment = item.comment || '';
-      this.price = item.price;
-      this.amount = item.amount;
-      this.rating = item.rating;
-      this.tags = [...item.tags];
-      this.selectedUsers = [...item.users];
-    }
-  }
 
   // Local filtering and sorting methods
   onFilterChange(filterText: string): void {
@@ -354,15 +317,10 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy, AfterVie
   scrollToHighlightedItem(): void {
     if (!this.highlightedItemId) return;
 
-    const itemElement = document.querySelector(`.highlighted-item`);
-    if (itemElement) {
-      itemElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-      // Remove highlight after animation completes (2s * 3 iterations = 6s)
-      setTimeout(() => {
-        this.highlightedItemId = undefined;
-      }, 6000);
-    }
+    // Remove highlight after animation completes (1s * 1 iteration = 1s)
+    setTimeout(() => {
+      this.highlightedItemId = undefined;
+    }, 1000);
   }
 
   goToNextPage(): void {
@@ -424,242 +382,110 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy, AfterVie
 
   // Modal management methods
   openModal(type: 'add' | 'edit' | 'delete', id: string = ''): void {
-    this.currentModalContent = type;
-    this.modalTitle = this.translate.instant(`ITEMS.MODAL.${type.toUpperCase()}_TITLE`);
-
-    const modalElement = document.getElementById('itemsModal-' + this.checkId);
-    if (!modalElement) return;
-
     if (type === 'add') {
-      this.clearFormData();
-    } else if (id) {
-      this.loadSingleItem(id);
+      this.modalService.open(
+        ItemAddFormComponent,
+        this.translate.instant('ITEMS.MODAL.ADD_TITLE'),
+        {
+          users: this.users,
+          checkId: this.checkId,
+          dayExpensesId: this.dayExpensesId,
+          onSuccess: (checkId: string, newSum: number, dayExpensesTotalSum: number) =>
+            this.onItemCreated(checkId, newSum, dayExpensesTotalSum)
+        },
+        'lg'
+      );
+      return;
     }
 
-    if (!this.modalInstance) {
-      this.modalInstance = new bootstrap.Modal(modalElement, {
-        backdrop: 'static',
-        keyboard: false
-      });
+    if (type === 'edit') {
+      const item = this.itemsList.find(i => i.id === id);
+      if (!item) return;
+
+      this.modalService.open(
+        ItemEditFormComponent,
+        this.translate.instant('ITEMS.MODAL.EDIT_TITLE'),
+        {
+          users: this.users,
+          checkId: this.checkId,
+          dayExpensesId: this.dayExpensesId,
+          itemId: item.id,
+          name: item.name,
+          comment: item.comment || '',
+          price: item.price,
+          amount: item.amount,
+          rating: item.rating,
+          tags: [...item.tags],
+          selectedUsers: [...item.users],
+          onSuccess: (checkId: string, newSum: number, dayExpensesTotalSum: number) =>
+            this.onItemUpdated(checkId, newSum, dayExpensesTotalSum)
+        },
+        'lg'
+      );
+      return;
     }
 
-    this.formErrors = {};
-    this.formValidated = false;
+    if (type === 'delete') {
+      const item = this.itemsList.find(i => i.id === id);
+      if (!item) return;
 
-    this.modalInstance.show();
-  }
-
-  hideModal(): void {
-    if (this.modalInstance) {
-      this.modalInstance.hide();
-      this.formErrors = {};
-      this.formValidated = false;
-      this.clearFormData();
+      this.modalService.open(
+        ItemDeleteFormComponent,
+        this.translate.instant('ITEMS.MODAL.DELETE_TITLE'),
+        {
+          checkId: this.checkId,
+          dayExpensesId: this.dayExpensesId,
+          itemId: item.id,
+          name: item.name,
+          comment: item.comment || '',
+          price: item.price,
+          amount: item.amount,
+          rating: item.rating,
+          tags: [...item.tags],
+          selectedUsers: [...item.users],
+          onSuccess: (checkId: string, newSum: number, dayExpensesTotalSum: number) =>
+            this.onItemDeleted(checkId, newSum, dayExpensesTotalSum)
+        },
+        'lg'
+      );
+      return;
     }
   }
 
-  clearFormData(): void {
-    this.id = '';
-    this.name = '';
-    this.comment = '';
-    this.price = 0;
-    this.amount = 1;
-    this.rating = 0;
-    this.hoverRating = 0;
-    this.tags = [];
-    this.tagInput = '';
-    this.selectedUsers = [];
-  }
+  onItemCreated(checkId: string, newSum: number, _dayExpensesTotalSum: number): void {
+    // Emit check sum update
+    this.checkSumUpdated.emit({ checkId: checkId, newSum: newSum });
 
-  // Rating methods
-  setRating(rating: number): void {
-    this.rating = rating;
-  }
-
-  // User selection methods
-  onUserSelectionChange(user: string, event: any): void {
-    if (event.target.checked) {
-      if (!this.selectedUsers.includes(user)) {
-        this.selectedUsers.push(user);
-      }
+    // If items are provided from parent, emit event; otherwise reload
+    if (this.items !== undefined) {
+      this.itemsChanged.emit(this.checkId);
     } else {
-      const index = this.selectedUsers.indexOf(user);
-      if (index > -1) {
-        this.selectedUsers.splice(index, 1);
-      }
+      this.loadItems();
     }
   }
 
-  isAllUsersSelected(): boolean {
-    return this.users.length > 0 && this.selectedUsers.length === this.users.length;
-  }
+  onItemUpdated(checkId: string, newSum: number, _dayExpensesTotalSum: number): void {
+    // Emit check sum update
+    this.checkSumUpdated.emit({ checkId: checkId, newSum: newSum });
 
-  toggleAllUsers(event: any): void {
-    if (event.target.checked) {
-      // Select all users
-      this.selectedUsers = [...this.users];
+    // If items are provided from parent, emit event; otherwise reload
+    if (this.items !== undefined) {
+      this.itemsChanged.emit(this.checkId);
     } else {
-      // Deselect all users
-      this.selectedUsers = [];
+      this.loadItems();
     }
   }
 
-  // Tag management methods
-  addTag(): void {
-    const trimmedTag = this.tagInput.trim().replace(/\s+/g, '_').toLowerCase();
-    if (trimmedTag && !this.tags.includes(trimmedTag)) {
-      this.tags.push(trimmedTag);
-      this.tagInput = '';
+  onItemDeleted(checkId: string, newSum: number, _dayExpensesTotalSum: number): void {
+    // Emit check sum update
+    this.checkSumUpdated.emit({ checkId: checkId, newSum: newSum });
+
+    // If items are provided from parent, emit event; otherwise reload
+    if (this.items !== undefined) {
+      this.itemsChanged.emit(this.checkId);
+    } else {
+      this.loadItems();
     }
-  }
-
-  removeTag(tag: string): void {
-    const index = this.tags.indexOf(tag);
-    if (index > -1) {
-      this.tags.splice(index, 1);
-    }
-  }
-
-  // CRUD operations
-  validateItemForm(): boolean {
-    this.formErrors = this.formValidationService.validateItemForm(
-      this.name,
-      this.price,
-      this.amount,
-      this.rating,
-      this.selectedUsers
-    );
-    this.formValidated = true;
-
-    return !this.formValidationService.hasErrors(this.formErrors);
-  }
-
-  createItem(): void {
-    if (!this.validateItemForm()) return;
-    this.formValidated = true;
-
-    const newItem: Item = {
-      id: '00000000-0000-0000-0000-000000000000',
-      name: this.name,
-      comment: this.comment,
-      price: this.price,
-      amount: this.amount,
-      rating: this.rating,
-      tags: this.tags,
-      users: this.selectedUsers,
-      checkId: this.checkId
-    };
-
-    this.itemsService.createItem(newItem).subscribe({
-      next: (response: ItemResponse) => {
-        this.hideModal();
-        // Emit check sum update
-        this.checkSumUpdated.emit({ checkId: this.checkId, newSum: response.checkTotalSum });
-        // If items are provided from parent, emit event; otherwise reload
-        if (this.items !== undefined) {
-          this.itemsChanged.emit(this.checkId);
-        } else {
-          this.loadItems();
-        }
-        this.dayExpensesTotalSumUpdateService.emitDayExpensesTotalSumUpdate(this.dayExpensesId, response.dayExpensesTotalSum);
-        this.toastService.success(
-          this.translate.instant('ITEMS.TOAST.SUCCESS'),
-          this.translate.instant('ITEMS.TOAST.CREATE_SUCCESS')
-        );
-      },
-      error: error => {
-        this.formErrors = parseValidationErrors(error);
-        this.formValidated = true;
-        if (Object.keys(this.formErrors).length === 0 || this.formErrors['general']) {
-          const errorMessage = this.formErrors['general'] || error?.error?.message || error?.message || this.translate.instant('ITEMS.TOAST.CREATE_ERROR');
-          this.toastService.error(
-            this.translate.instant('ITEMS.TOAST.ERROR'),
-            this.translateBackendError(errorMessage)
-          );
-        }
-      }
-    });
-  }
-
-  editItem(): void {
-    if (!this.validateItemForm()) return;
-    this.formValidated = true;
-
-    const updatedItem: Item = {
-      id: this.id,
-      name: this.name,
-      comment: this.comment,
-      price: this.price,
-      amount: this.amount,
-      rating: this.rating,
-      tags: this.tags,
-      users: this.selectedUsers,
-      checkId: this.checkId
-    };
-
-    this.itemsService.editItem(updatedItem).subscribe({
-      next: (response: ItemResponse) => {
-        this.hideModal();
-        // Emit check sum update
-        this.checkSumUpdated.emit({ checkId: this.checkId, newSum: response.checkTotalSum });
-        // If items are provided from parent, emit event; otherwise reload
-        if (this.items !== undefined) {
-          this.itemsChanged.emit(this.checkId);
-        } else {
-          this.loadItems();
-        }
-        this.dayExpensesTotalSumUpdateService.emitDayExpensesTotalSumUpdate(this.dayExpensesId, response.dayExpensesTotalSum);
-        this.toastService.success(
-          this.translate.instant('ITEMS.TOAST.SUCCESS'),
-          this.translate.instant('ITEMS.TOAST.EDIT_SUCCESS')
-        );
-      },
-      error: error => {
-        this.formErrors = parseValidationErrors(error);
-        this.formValidated = true;
-        if (Object.keys(this.formErrors).length === 0 || this.formErrors['general']) {
-          const errorMessage = this.formErrors['general'] || error?.error?.message || error?.message || this.translate.instant('ITEMS.TOAST.EDIT_ERROR');
-          this.toastService.error(
-            this.translate.instant('ITEMS.TOAST.ERROR'),
-            this.translateBackendError(errorMessage)
-          );
-        }
-      }
-    });
-  }
-
-  deleteItem(): void {
-    this.itemsService.deleteItem(this.id).subscribe({
-      next: (response: DeleteItemResponse) => {
-        // Remove the item from the local list
-        const index = this.itemsList.findIndex(i => i.id === this.id);
-        if (index !== -1) {
-          this.itemsList.splice(index, 1);
-          this.applyLocalFiltering();
-        }
-
-        this.hideModal();
-        // Emit check sum update
-        this.checkSumUpdated.emit({ checkId: this.checkId, newSum: response.checkTotalSum });
-        // If items are provided from parent, emit event
-        if (this.items !== undefined) {
-          this.itemsChanged.emit(this.checkId);
-        }
-        this.dayExpensesTotalSumUpdateService.emitDayExpensesTotalSumUpdate(this.dayExpensesId, response.dayExpensesTotalSum);
-        this.toastService.success(
-          this.translate.instant('ITEMS.TOAST.SUCCESS'),
-          this.translate.instant('ITEMS.TOAST.DELETE_SUCCESS')
-        );
-      },
-      error: error => {
-        console.log(error);
-        const errorMessage = error?.error?.message || error?.message || this.translate.instant('ITEMS.TOAST.DELETE_ERROR');
-        this.toastService.error(
-          this.translate.instant('ITEMS.TOAST.ERROR'),
-          this.translateBackendError(errorMessage)
-        );
-      }
-    });
   }
 
   // Helper methods
@@ -717,5 +543,14 @@ export class ItemListComponent implements OnInit, OnChanges, OnDestroy, AfterVie
   get paginationEndIndex(): number {
     if (this.filteredItemsList.length === 0) return 0;
     return Math.min(this.currentPage * this.itemsPerPage, this.filteredItemsList.length);
+  }
+
+  setItemsPerPageByScreenSize(): void {
+    // Bootstrap's md breakpoint is 768px
+    if (window.innerWidth < 768) {
+      this.itemsPerPage = 3;
+    } else {
+      this.itemsPerPage = 8;
+    }
   }
 }

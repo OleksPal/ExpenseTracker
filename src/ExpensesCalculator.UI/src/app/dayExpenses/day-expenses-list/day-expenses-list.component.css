@@ -13,6 +13,7 @@ th {
 
 td {
     vertical-align: middle !important;
+    white-space: nowrap;
 }
 
 .table tr:nth-child(odd) td {
@@ -117,14 +118,22 @@ td {
   border-color: black;
 }
 
-/* Override table-responsive overflow to prevent scrollbar issues with dropdowns */
+/* Enable horizontal scrolling while keeping dropdowns visible */
 .fix-table-height {
-  overflow: visible !important;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
 }
 
-/* Ensure dropdowns are positioned above other content */
+/* Ensure dropdowns are positioned above other content and can overlay */
 .dropdown-menu {
   z-index: 1050;
+  position: absolute !important;
+  will-change: transform;
+}
+
+/* Allow dropdown to escape overflow container */
+tr .dropdown {
+  position: static;
 }
 
 /* Truncate location column to approximately 15 characters */
@@ -133,4 +142,132 @@ td {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Component-specific responsive styles */
+@media (max-width: 576px) {
+  /* Reduce spacing around Add Expenses button */
+  hr.my-3 {
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .table {
+    font-size: 0.85rem !important;
+  }
+
+  /* Pagination elements */
+  .pagination-container {
+    font-size: 0.9rem !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 15px !important;
+  }
+
+  .pagination-container > div:first-child {
+    width: 100% !important;
+    text-align: left !important;
+  }
+
+  .page-size-selector {
+    font-size: 0.9rem !important;
+    width: 100% !important;
+    justify-content: flex-end !important;
+    margin-top: 0 !important;
+    padding-right: 0.5rem !important;
+  }
+
+  .pagination-container .btn {
+    font-size: 0.8rem !important;
+    padding: 0.25rem 0.5rem !important;
+  }
+
+  /* Filter controls */
+  .input-group {
+    font-size: 0.8rem !important;
+  }
+
+  /* Date range control sizing */
+  #dateRangeInput {
+    font-size: 0.75rem !important;
+    padding: 0.25rem 0.5rem !important;
+  }
+
+  #calendarButton {
+    font-size: 0.8rem !important;
+    padding: 0.25rem 0.5rem !important;
+  }
+
+  /* Make date range input full width on small screens */
+  .input-group.text-center {
+    min-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Filter and Sort group - side by side buttons */
+  .filter-sort-group {
+    gap: 0.5rem !important;
+  }
+
+  .filter-sort-group .filter-btn {
+    width: 50% !important;
+    font-size: 0.85rem !important;
+    padding: 0.2rem 0.5rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .filter-sort-group app-sort-bar {
+    width: 50% !important;
+    flex: 0 0 50%;
+  }
+
+  .filter-sort-group app-sort-bar .sort-dropdown {
+    width: 100%;
+  }
+
+  .filter-sort-group app-sort-bar button {
+    width: 100% !important;
+  }
+
+  /* Reduce no data text size for small screens */
+  .no-data-section h2 {
+    font-size: 1.25rem !important;
+  }
+
+  .no-data-section h5 {
+    font-size: 0.85rem !important;
+  }
+}
+
+/* Accordion styles for small screens */
+.accordion-button {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: transparent !important;
+  color: white !important;
+}
+
+.accordion-button::after {
+  filter: invert(1);
+}
+
+.accordion-button:focus {
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+.accordion-item {
+  border-bottom: 1px solid rgba(13, 110, 253, 0.3) !important;
+}
+
+.accordion-item:last-child {
+  border-bottom: none !important;
+}
+
+.accordion-body {
+  border-top: 1px solid rgba(13, 110, 253, 0.2);
 }

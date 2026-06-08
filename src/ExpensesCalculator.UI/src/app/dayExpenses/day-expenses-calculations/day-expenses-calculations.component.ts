@@ -128,9 +128,8 @@ export class DayExpensesCalculationsComponent implements OnInit, AfterViewInit, 
     return this.tooltipService.generateUsersTooltip(users, 3);
   }
 
-  getCheckTooltip(items: ItemCalculation[], payer: string): string {
-    const sum = items.reduce((total, itemCalc) => total + itemCalc.item.price, 0);
-    return this.tooltipService.generateCheckTooltip(sum, payer);
+  getCheckTooltip(totalSum: number, payer: string): string {
+    return this.tooltipService.generateCheckTooltip(totalSum, payer);
   }
 
   // Tour
@@ -168,7 +167,12 @@ export class DayExpensesCalculationsComponent implements OnInit, AfterViewInit, 
       );
     }
 
-    this.tourService.initialize(tourSteps);
+    // Initialize tour with global button title configuration
+    this.tourService.initialize(tourSteps, {
+      prevBtnTitle: this.translate.instant('TOUR.PREV_BTN'),
+      nextBtnTitle: this.translate.instant('TOUR.NEXT_BTN'),
+      endBtnTitle: this.translate.instant('TOUR.END_BTN')
+    });
   }
 
   startTour(): void {

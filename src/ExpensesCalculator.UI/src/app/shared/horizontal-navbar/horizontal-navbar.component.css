@@ -1,3 +1,34 @@
+/* Prevent text wrapping in navbar */
+.navbar-nav.no-wrap {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+}
+
+.navbar-nav.no-wrap .nav-item,
+.navbar-nav.no-wrap .nav-link,
+.navbar-nav.no-wrap button {
+    white-space: nowrap;
+}
+
+/* Truncate username on small screens */
+@media (max-width: 576px) {
+    .navbar-nav .nav-link strong {
+        display: inline-block;
+        max-width: 10ch; /* Approximately 8 characters */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: bottom;
+    }
+
+    /* Reduce text size for all navbar elements */
+    .navbar-nav .nav-link,
+    .navbar-nav button,
+    .lang-button {
+        font-size: 0.85rem !important;
+    }
+}
+
 .lang-button:active {
     border: 2px solid var(--bs-primary) !important;
 }

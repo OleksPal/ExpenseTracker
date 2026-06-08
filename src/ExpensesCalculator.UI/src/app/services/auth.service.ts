@@ -97,30 +97,34 @@ export class RefreshInterceptor implements HttpInterceptor {
 
   constructor(
     private auth: AuthService,
-    private tokens: TokenService 
+    private tokens: TokenService,
+    private router: Router
   ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler) {
     return next.handle(req).pipe(
       catchError(err => {
-        if (err.status === 401 && !this.isRefreshing){
+        // Only handle 401 errors, skip if already refreshing or if this is the refresh endpoint
+        if (err.status === 401 && !this.isRefreshing && !req.url.includes('/auth/refresh')) {
           this.isRefreshing = true;
 
           return this.auth.refreshToken().pipe(
             switchMap(() => {
               this.isRefreshing = false;
 
-              const newReq = req.clone({
+              // Retry the original request with the new token
+              const retryReq = req.clone({
                 setHeaders: {
                   Authorization: `Bearer ${this.tokens.getAccessToken()}`
                 }
-              })
+              });
 
-              return next.handle(newReq);
+              return next.handle(retryReq);
             }),
             catchError(() => {
               this.isRefreshing = false;
               this.tokens.clear();
+              this.router.navigate(['/login']);
               return throwError(() => err);
             })
           );

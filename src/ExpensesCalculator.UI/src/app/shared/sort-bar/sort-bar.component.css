@@ -43,3 +43,23 @@ hr {
   border-color: #6c757d;
   color: white;
 }
+
+/* Component-specific responsive styles */
+@media (max-width: 576px) {
+  .sort-dropdown .dropdown-toggle {
+    width: 100% !important;
+  }
+
+  .sort-dropdown .dropdown-menu {
+    width: 100% !important;
+  }
+
+  .form-check-label {
+    font-size: 0.8rem !important;
+  }
+
+  .dropdown-menu .btn {
+    font-size: 0.75rem !important;
+    padding: 0.25rem 0.5rem !important;
+  }
+}
